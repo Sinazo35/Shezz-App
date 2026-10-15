@@ -52,14 +52,8 @@ The manifest, service worker, app icons and standalone display mode are included
 
 **This package is deployable and installable as a demonstration PWA, not a fully production-secure booking and payments platform.**
 
-## Supabase secure portal setup (new)
-1. Create a Supabase project. In SQL Editor, run `supabase.sql`.
-2. In Authentication > Providers, enable Email. Configure your Site URL to your deployed HTTPS URL and add the URL to allowed redirects. Keep email confirmation enabled.
-3. In Render, set `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (secret, server only). Never add the service role key to the frontend or GitHub.
-4. Deploy. Open **Secure Portal** and create an account. Staff must be assigned by an administrator: find the staff account UUID in Supabase Authentication > Users and run `insert into public.staff_members(user_id) values ('STAFF-UUID-HERE');` in SQL Editor.
-5. Customers use Secure Portal for Supabase-backed bookings and loyalty; the original Book, Rewards and Demo Staff pages remain LOCAL DEMOS and must not be used for real customer records. Do not use the demo PIN in production.
-6. PayFast checkout is intentionally disabled until verified merchant setup and server-side ITN verification are implemented and tested. Never mark a payment paid from the browser or from a return URL alone.
-7. Set `OPENAI_API_KEY` only in Render environment variables to enable the live AI assistant. Without a key, the chatbot uses the built-in FAQ.
-8. Install on Android via browser Install App. On iOS, Safari > Share > Add to Home Screen. Requires HTTPS.
+## Backend notes
 
-**Security notes:** The server verifies Supabase JWTs and checks staff roles; appointments use a unique slot index to prevent double bookings. Reward codes are random, stored as SHA-256 hashes, expire in 10 minutes, and are checked by the server. For high-volume production, move the reward redemption check/update into a single PostgreSQL transaction (RPC) to eliminate race conditions, add audit logs and a dedicated staff scanning UI. This is a deployment-ready development foundation, not a completed PCI/payment integration.
+The customer-facing Secure Portal screen has been removed. `secure-api.mjs` and `supabase.sql` remain as optional backend groundwork, but are not linked from the app. Bookings and rewards in the current UI use browser storage and remain demonstrations, not production records.
+
+Set `OPENAI_API_KEY` only in the server environment to enable the live AI assistant. Without a key, the chatbot uses the built-in FAQ. Never place private keys in the frontend or commit them to GitHub.
