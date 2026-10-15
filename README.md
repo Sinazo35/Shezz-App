@@ -1,1 +1,65 @@
-# Shezz-App
+# SHEZZ Beauty Studio — installable salon web app (PWA)
+
+Royal-blue and white React/Vite app with **all 6 original photos plus 18 photos from the latest WhatsApp ZIP**, Delft South, Cape Town, 7100 address, service gallery, stylist/time-slot selection, demo bookings, demo loyalty rewards, and a chat assistant.
+
+## Run locally
+
+Install Node.js 20+ and run:
+
+```sh
+npm install
+npm run dev
+```
+
+Vite opens the development app (normally http://localhost:5173). **For the chatbot endpoint, use the production server**:
+
+```sh
+npm run build
+npm start
+```
+
+Then open http://localhost:3000. Without an API key, the chatbot answers from a built-in salon FAQ. To enable actual AI-generated responses, set `OPENAI_API_KEY` **on the server** (not in React or in the browser). The server uses the OpenAI Responses API and falls back to FAQ answers if the API is unavailable. Chatbot conversations are sent to the configured AI provider when enabled. Add appropriate consent and privacy notices before collecting customer information.
+
+## Deploy on Render
+
+1. Create a GitHub repository containing the files in this folder.
+2. In Render, create a new **Web Service** from the repository or use the included `render.yaml` Blueprint.
+3. Build command: `npm install && npm run build`; start command: `npm start`.
+4. Optionally add `OPENAI_API_KEY` to Render environment variables. **Never commit the key.**
+5. Open the HTTPS URL supplied by Render. In supported browsers, choose **Install app / Add to Home Screen**. iPhone Safari: Share > Add to Home Screen.
+
+The manifest, service worker, app icons and standalone display mode are included. Installation requires HTTPS (or localhost) and depends on browser support. Offline support is limited to previously visited pages/assets; appointments and chat require connectivity.
+
+## Features and IMPORTANT limitations
+
+- Responsive royal-blue and white layout; 24 supplied photos, including 18 new portfolio images.
+- Salon address shown as **Delft South, Cape Town, 7100**. Exact street address and phone number were not provided.
+- Services, stylist names, prices, durations, and working days are **examples** and need salon confirmation.
+- Chat assistant: real server-side AI when configured; otherwise FAQ fallback.
+- Bookings, staff demo PIN `2468`, reward progress, QR codes, and redemption currently use **browser localStorage only**. They are demonstrations, **not secure or shared across devices**.
+- The online-payment choice is a **request only**. No payment provider is integrated; the app **cannot collect or verify real payments**.
+- Demo loyalty stamps require staff-marked visits in that same browser, but are **not tamper-resistant**. Do not issue discounts based on demo rewards.
+- Do **not** use the current version for live customer bookings, personal data, payment collection, or real loyalty redemptions.
+
+## Production work required before commercial launch
+
+1. Add a managed PostgreSQL database and customer login / phone OTP verification, with consent and POPIA-compliant privacy notices.
+2. Build authenticated staff roles, secure password reset and audit logging; remove the public demo PIN.
+3. Persist bookings server-side and atomically prevent stylist/time overlap for the **full service duration**, not just the start time.
+4. Record verified completed visits in a tamper-resistant server ledger; generate cryptographically random expiring single-use QR tokens; validate and redeem atomically with staff authentication.
+5. Connect a South African supported payment provider (e.g. PayFast, Peach Payments or Paystack) using **hosted checkout and verified server-to-server webhooks**. Never process card numbers yourself. Provider accounts, credentials and business verification are required.
+6. Configure real stylist schedules, service prices, refund/cancellation policy, address, phone, domain and notification service.
+
+**This package is deployable and installable as a demonstration PWA, not a fully production-secure booking and payments platform.**
+
+## Supabase secure portal setup (new)
+1. Create a Supabase project. In SQL Editor, run `supabase.sql`.
+2. In Authentication > Providers, enable Email. Configure your Site URL to your deployed HTTPS URL and add the URL to allowed redirects. Keep email confirmation enabled.
+3. In Render, set `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (secret, server only). Never add the service role key to the frontend or GitHub.
+4. Deploy. Open **Secure Portal** and create an account. Staff must be assigned by an administrator: find the staff account UUID in Supabase Authentication > Users and run `insert into public.staff_members(user_id) values ('STAFF-UUID-HERE');` in SQL Editor.
+5. Customers use Secure Portal for Supabase-backed bookings and loyalty; the original Book, Rewards and Demo Staff pages remain LOCAL DEMOS and must not be used for real customer records. Do not use the demo PIN in production.
+6. PayFast checkout is intentionally disabled until verified merchant setup and server-side ITN verification are implemented and tested. Never mark a payment paid from the browser or from a return URL alone.
+7. Set `OPENAI_API_KEY` only in Render environment variables to enable the live AI assistant. Without a key, the chatbot uses the built-in FAQ.
+8. Install on Android via browser Install App. On iOS, Safari > Share > Add to Home Screen. Requires HTTPS.
+
+**Security notes:** The server verifies Supabase JWTs and checks staff roles; appointments use a unique slot index to prevent double bookings. Reward codes are random, stored as SHA-256 hashes, expire in 10 minutes, and are checked by the server. For high-volume production, move the reward redemption check/update into a single PostgreSQL transaction (RPC) to eliminate race conditions, add audit logs and a dedicated staff scanning UI. This is a deployment-ready development foundation, not a completed PCI/payment integration.
