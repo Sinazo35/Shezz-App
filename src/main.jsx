@@ -116,6 +116,13 @@ const dateISO = (d) => {
     a = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${a}`;
 };
+const customerAccount = (user) => ({
+  role: "customer",
+  id: user.id,
+  email: user.email || "",
+  name: user.user_metadata?.full_name || "",
+  phone: user.user_metadata?.phone || "",
+});
 function App() {
   const [chatOpen, setChatOpen] = useState(false),
     [chatInput, setChatInput] = useState(""),
@@ -139,8 +146,14 @@ function App() {
     [email, setEmail] = useState(""),
     [account, setAccount] = useState(null),
     [loginRole, setLoginRole] = useState("customer"),
+    [customerAuthMode, setCustomerAuthMode] = useState("signin"),
     [loginEmail, setLoginEmail] = useState(""),
     [loginPhone, setLoginPhone] = useState(""),
+    [loginName, setLoginName] = useState(""),
+    [loginPassword, setLoginPassword] = useState(""),
+    [authClient, setAuthClient] = useState(null),
+    [authStatus, setAuthStatus] = useState("loading"),
+    [authBusy, setAuthBusy] = useState(false),
     [bookings, setBookings] = useState(() => load("shezz_bookings", [])),
     [notice, setNotice] = useState(""),
     [rewardPhone, setRewardPhone] = useState(""),
@@ -151,6 +164,55 @@ function App() {
     [rewardCode, setRewardCode] = useState(""),
     [payment, setPayment] = useState("Pay at salon"),
     [rewardDiscount, setRewardDiscount] = useState(10);
+  useEffect(() => {
+    let active = true;
+    let authSubscription;
+    async function connectAuth() {
+      try {
+        const response = await fetch("/api/config");
+        if (!response.ok) throw new Error("Supabase configuration unavailable.");
+        const config = await response.json();
+        if (!config.enabled || !config.supabaseUrl || !config.supabaseAnonKey) {
+          if (active) setAuthStatus("unavailable");
+          return;
+        }
+        const { createClient } = await import("@supabase/supabase-js");
+        const client = createClient(config.supabaseUrl, config.supabaseAnonKey);
+        const { data, error } = await client.auth.getSession();
+        if (error) throw error;
+        if (!active) return;
+        setAuthClient(client);
+        setAuthStatus("ready");
+        if (data.session?.user) {
+          const profile = customerAccount(data.session.user);
+          setAccount(profile);
+          setCustomer(profile.name);
+          setEmail(profile.email);
+          setPhone(profile.phone);
+          setRewardPhone(profile.phone);
+          setPage("appointments");
+        }
+        const { data: authState } = client.auth.onAuthStateChange((_event, session) => {
+          if (!active) return;
+          if (session?.user) {
+            setAccount(customerAccount(session.user));
+          } else {
+            setAccount((current) =>
+              current?.role === "customer" ? null : current,
+            );
+          }
+        });
+        authSubscription = authState.subscription;
+      } catch {
+        if (active) setAuthStatus("unavailable");
+      }
+    }
+    connectAuth();
+    return () => {
+      active = false;
+      authSubscription?.unsubscribe();
+    };
+  }, []);
   useEffect(
     () => localStorage.setItem("shezz_bookings", JSON.stringify(bookings)),
     [bookings],
@@ -165,14 +227,21 @@ function App() {
     setMenu(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
-  function signOut() {
+  async function signOut() {
+    if (account?.role === "customer" && authClient) {
+      const { error } = await authClient.auth.signOut();
+      if (error) {
+        setNotice("Could not sign out. Please try again.");
+        return;
+      }
+    }
     setAccount(null);
     setStaffAuth(false);
     setStaffPin("");
     setNotice("You have signed out.");
     go("home");
   }
-  function signIn(event) {
+  async function signIn(event) {
     event.preventDefault();
     if (loginRole === "staff") {
       if (staffPin !== "2468") {
@@ -185,20 +254,67 @@ function App() {
       go("admin");
       return;
     }
-    if (loginPhone.replace(/\D/g, "").length < 9) {
-      setNotice("Enter the phone number used for your bookings.");
+    if (!authClient) {
+      setNotice("Customer accounts are unavailable until Supabase is configured.");
       return;
     }
-    const signedInPhone = loginPhone.trim();
-    setAccount({
-      role: "customer",
-      email: loginEmail.trim(),
-      phone: signedInPhone,
-    });
-    setStaffAuth(false);
-    setRewardPhone(signedInPhone);
-    setNotice("Welcome back. Your appointments are ready.");
-    go("appointments");
+    setAuthBusy(true);
+    try {
+      if (customerAuthMode === "signup") {
+        if (!loginName.trim()) {
+          setNotice("Enter your full name to create an account.");
+          return;
+        }
+        if (loginPhone.replace(/\D/g, "").length < 9) {
+          setNotice("Enter a valid mobile number to create an account.");
+          return;
+        }
+        const { data, error } = await authClient.auth.signUp({
+          email: loginEmail.trim(),
+          password: loginPassword,
+          options: {
+            data: {
+              full_name: loginName.trim(),
+              phone: loginPhone.trim(),
+            },
+            emailRedirectTo: window.location.origin,
+          },
+        });
+        if (error) throw error;
+        if (!data.session || !data.user) {
+          setCustomerAuthMode("signin");
+          setNotice("Account created. Check your email to confirm, then sign in.");
+          return;
+        }
+        const profile = customerAccount(data.user);
+        setAccount(profile);
+        setCustomer(profile.name);
+        setEmail(profile.email);
+        setPhone(profile.phone);
+        setRewardPhone(profile.phone);
+        setNotice("Your SHEZZ account is ready.");
+      } else {
+        const { data, error } = await authClient.auth.signInWithPassword({
+          email: loginEmail.trim(),
+          password: loginPassword,
+        });
+        if (error) throw error;
+        const profile = customerAccount(data.user);
+        setAccount(profile);
+        setCustomer(profile.name);
+        setEmail(profile.email);
+        setPhone(profile.phone);
+        setRewardPhone(profile.phone);
+        setNotice("Welcome back. You are signed in.");
+      }
+      setStaffAuth(false);
+      setLoginPassword("");
+      go("appointments");
+    } catch (error) {
+      setNotice(error.message || "Could not sign in. Please try again.");
+    } finally {
+      setAuthBusy(false);
+    }
   }
   const service = services.find((s) => s.id === chosen);
   const filtered =
@@ -431,9 +547,19 @@ function App() {
               />
             </div>
             <section className="loginPanel" aria-labelledby="login-title">
-              <h2 id="login-title">Sign in</h2>
+              <h2 id="login-title">
+                {loginRole === "staff"
+                  ? "Staff sign in"
+                  : customerAuthMode === "signup"
+                    ? "Create your account"
+                    : "Sign in"}
+              </h2>
               <p className="loginSubheading">
-                Choose how you use SHEZZ Beauty Studio.
+                {loginRole === "staff"
+                  ? "Sign in to manage salon appointments."
+                  : customerAuthMode === "signup"
+                    ? "Create an account to keep your appointments together."
+                    : "Welcome back to SHEZZ Beauty Studio."}
               </p>
               <div className="loginRoles" aria-label="Choose account type">
                 <button
@@ -456,6 +582,33 @@ function App() {
               <form className="loginForm" onSubmit={signIn}>
                 {loginRole === "customer" ? (
                   <>
+                    {customerAuthMode === "signup" && (
+                      <>
+                        <label>
+                          Full name
+                          <input
+                            type="text"
+                            autoComplete="name"
+                            placeholder="Your full name"
+                            value={loginName}
+                            onChange={(event) => setLoginName(event.target.value)}
+                            required
+                          />
+                        </label>
+                        <label>
+                          Mobile number
+                          <input
+                            type="tel"
+                            autoComplete="tel"
+                            placeholder="e.g. 082 123 4567"
+                            value={loginPhone}
+                            onChange={(event) => setLoginPhone(event.target.value)}
+                            minLength={9}
+                            required
+                          />
+                        </label>
+                      </>
+                    )}
                     <label>
                       Email address
                       <input
@@ -468,24 +621,71 @@ function App() {
                       />
                     </label>
                     <label>
-                      Mobile number
+                      Password
                       <input
-                        type="tel"
-                        autoComplete="tel"
-                        placeholder="e.g. 082 123 4567"
-                        value={loginPhone}
-                        onChange={(event) => setLoginPhone(event.target.value)}
+                        type="password"
+                        autoComplete={
+                          customerAuthMode === "signup"
+                            ? "new-password"
+                            : "current-password"
+                        }
+                        placeholder={
+                          customerAuthMode === "signup"
+                            ? "Create a password"
+                            : "Enter your password"
+                        }
+                        value={loginPassword}
+                        onChange={(event) =>
+                          setLoginPassword(event.target.value)
+                        }
+                        minLength={6}
                         required
                       />
                     </label>
-                    <small>
-                      Enter your email and the phone number used when booking.
-                      This demo finds appointments saved in this browser by
-                      phone number.
-                    </small>
-                    <button className="btn primary full" type="submit">
-                      Continue to my bookings <ArrowRight size={17} />
+                    {authStatus === "loading" ? (
+                      <small className="authNotice" role="status">
+                        Connecting to the customer account service...
+                      </small>
+                    ) : authStatus === "unavailable" ? (
+                      <small className="authNotice" role="status">
+                        Customer accounts are unavailable until Supabase is
+                        configured on the server.
+                      </small>
+                    ) : customerAuthMode === "signup" ? (
+                      <small>
+                        Your account is saved securely with Supabase. Passwords
+                        are handled by Supabase Auth.
+                      </small>
+                    ) : null}
+                    <button
+                      className="btn primary full"
+                      type="submit"
+                      disabled={authBusy || authStatus !== "ready"}
+                    >
+                      {authBusy
+                        ? "Please wait..."
+                        : customerAuthMode === "signup"
+                          ? "Create account"
+                          : "Sign in"} <ArrowRight size={17} />
                     </button>
+                    <p className="accountModeSwitch">
+                      {customerAuthMode === "signup"
+                        ? "Already have an account?"
+                        : "New to SHEZZ?"}{" "}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCustomerAuthMode((mode) =>
+                            mode === "signup" ? "signin" : "signup",
+                          );
+                          setNotice("");
+                        }}
+                      >
+                        {customerAuthMode === "signup"
+                          ? "Sign in"
+                          : "Create an account"}
+                      </button>
+                    </p>
                   </>
                 ) : (
                   <>

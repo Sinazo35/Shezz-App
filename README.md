@@ -24,9 +24,19 @@ Then open http://localhost:3000. Without an API key, the chatbot answers from a 
 
 1. Create a GitHub repository containing the files in this folder.
 2. In Render, create a new **Web Service** from the repository or use the included `render.yaml` Blueprint.
-3. Build command: `npm install && npm run build`; start command: `npm start`.
-4. Optionally add `OPENAI_API_KEY` to Render environment variables. **Never commit the key.**
-5. Open the HTTPS URL supplied by Render. In supported browsers, choose **Install app / Add to Home Screen**. iPhone Safari: Share > Add to Home Screen.
+3. In Supabase, create a project and run `supabase.sql` in the SQL Editor. This creates customer profiles on Auth signup and links appointment rows to those profiles.
+4. In Supabase **Authentication > URL Configuration**, set the Render URL as the Site URL and an allowed redirect URL. Enable email/password sign-in and choose whether email confirmation is required.
+5. Add these Render environment variables from Supabase **Project Settings > API**:
+	- `SUPABASE_URL`
+	- `SUPABASE_ANON_KEY`
+	- `SUPABASE_SERVICE_ROLE_KEY`
+
+	The service-role key is server-only. Never add it to frontend code, a `VITE_` variable, or Git.
+6. Build command: `npm install && npm run build`; start command: `npm start`.
+7. Optionally add `OPENAI_API_KEY` to Render environment variables. **Never commit the key.**
+8. Open the HTTPS URL supplied by Render. In supported browsers, choose **Install app / Add to Home Screen**. iPhone Safari: Share > Add to Home Screen.
+
+To exercise Supabase Auth locally, configure the same three variables in the server environment, then run `npm run build` and `npm start`. The Vite-only `npm run dev` server does not provide the `/api/config` endpoint used to initialize Auth.
 
 The manifest, service worker, app icons and standalone display mode are included. Installation requires HTTPS (or localhost) and depends on browser support. Offline support is limited to previously visited pages/assets; appointments and chat require connectivity.
 
@@ -36,14 +46,15 @@ The manifest, service worker, app icons and standalone display mode are included
 - Salon address shown as **Delft South, Cape Town, 7100**. Exact street address and phone number were not provided.
 - Services, stylist names, prices, durations, and working days are **examples** and need salon confirmation.
 - Chat assistant: real server-side AI when configured; otherwise FAQ fallback.
-- Bookings, staff demo PIN `2468`, reward progress, QR codes, and redemption currently use **browser localStorage only**. They are demonstrations, **not secure or shared across devices**.
+- Customer email/password sign-up and sign-in use Supabase Auth when configured. The SQL trigger adds customer profiles to `public.customers`; email confirmation depends on the Supabase Auth setting.
+- Bookings, staff demo PIN `2468`, reward progress, QR codes, and redemption still use **browser localStorage only**. They are demonstrations, **not secure or shared across devices**.
 - The online-payment choice is a **request only**. No payment provider is integrated; the app **cannot collect or verify real payments**.
 - Demo loyalty stamps require staff-marked visits in that same browser, but are **not tamper-resistant**. Do not issue discounts based on demo rewards.
-- Do **not** use the current version for live customer bookings, personal data, payment collection, or real loyalty redemptions.
+- Do not use the current booking, payment, or reward flows for commercial operations. Add appropriate consent and privacy notices before collecting customer account information.
 
 ## Production work required before commercial launch
 
-1. Add a managed PostgreSQL database and customer login / phone OTP verification, with consent and POPIA-compliant privacy notices.
+1. Configure Supabase Auth email/phone verification for the live domain, with consent and POPIA-compliant privacy notices.
 2. Build authenticated staff roles, secure password reset and audit logging; remove the public demo PIN.
 3. Persist bookings server-side and atomically prevent stylist/time overlap for the **full service duration**, not just the start time.
 4. Record verified completed visits in a tamper-resistant server ledger; generate cryptographically random expiring single-use QR tokens; validate and redeem atomically with staff authentication.
@@ -54,6 +65,6 @@ The manifest, service worker, app icons and standalone display mode are included
 
 ## Backend notes
 
-The customer-facing Secure Portal screen has been removed. `secure-api.mjs` and `supabase.sql` remain as optional backend groundwork, but are not linked from the app. Bookings and rewards in the current UI use browser storage and remain demonstrations, not production records.
+The customer sign-in and account-creation screen uses Supabase Auth when the server has all three Supabase environment variables configured. `supabase.sql` creates a `public.customers` row from each Auth signup and links appointments to that profile. The authenticated `/api/v1` booking and rewards endpoints are not yet wired into the customer-facing booking and rewards UI; those flows still use browser local storage and are not production records.
 
-Set `OPENAI_API_KEY` only in the server environment to enable the live AI assistant. Without a key, the chatbot uses the built-in FAQ. Never place private keys in the frontend or commit them to GitHub.
+Set `OPENAI_API_KEY` only in the server environment to enable the live AI assistant. Without a key, the chatbot uses the built-in FAQ. Never place private keys, including `SUPABASE_SERVICE_ROLE_KEY`, in the frontend or commit them to GitHub.
