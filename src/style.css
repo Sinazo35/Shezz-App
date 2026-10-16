@@ -1110,6 +1110,12 @@ footer {
   .adminGrid {
     grid-template-columns: 1fr;
   }
+  .paymentChoices {
+    flex-direction: column;
+  }
+  .paymentChoices button {
+    justify-content: flex-start;
+  }
   .rewardsBanner {
     padding: 60px 0;
   }
@@ -1172,9 +1178,6 @@ footer {
   }
   .stripGrid {
     grid-template-columns: 1fr;
-  }
-  .paymentChoices {
-    flex-direction: column;
   }
 }
 
