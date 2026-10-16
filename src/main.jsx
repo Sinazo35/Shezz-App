@@ -24,6 +24,7 @@ import {
   LockKeyhole,
   Plus,
   Minus,
+  ImagePlus,
 } from "lucide-react";
 import "./style.css";
 import "./theme.css";
@@ -110,19 +111,401 @@ const fmt = (d) =>
     year: "numeric",
   });
 const daynum = (d) => new Date(d + "T12:00:00").getDay();
+const translations = {
+  en: {
+    home: "Home",
+    services: "Services",
+    book: "Book Appointment",
+    appointments: "My Bookings",
+    offers: "Make an Offer",
+    offersTag: "SHEZZ STYLE OFFERS",
+    offerWelcome: "Your next look starts with an idea.",
+    offerWelcomeText: "Found a style you love? Share your inspiration and the price you have in mind. Our team will take a look and get back to you.",
+    offerStepDetails: "A little about you",
+    offerPhotoCaption: "Bring your inspiration to life",
+    offerStyleBadge: "Your style, your way",
+    offerStepStyle: "Tell us about your look",
+    offerStepPrice: "Your offer",
+    offerPriceHelp: "The salon will confirm the final price before anything is booked.",
+    offerPhotoHelp: "Choose a clear photo of the look you have in mind. JPG or PNG, up to 8 MB.",
+    offerAsideTitle: "Let’s create a look that feels like you.",
+    offerAsideText: "Your inspiration helps our stylists understand the details, so they can let you know what’s possible.",
+    offerAsideStep1: "Share a photo and describe your style",
+    offerAsideStep2: "Suggest the price that works for you",
+    offerAsideStep3: "Wait for the salon to respond",
+    offerDecisionNote: "No appointment is booked until you and the salon confirm the details.",
+    reviewOffers: "Review customer offers",
+    noCustomerOffers: "No customer offers yet.",
+    consentRecord: "Consent recorded",
+    rewards: "Rewards",
+    consentTitle: "Before you choose a treatment",
+    consentIntro:
+      "Please read and record your consent before selecting a treatment.",
+    consentHeading: "Digital consultation consent",
+    consentText:
+      "I understand that I will discuss the treatment, possible risks, alternatives and aftercare with my stylist before it begins. I can ask questions, choose not to proceed, or withdraw my consent at any time. This general consent does not replace treatment-specific consent.",
+    privacyText:
+      "I agree that SHEZZ may record my name, contact details, consent wording, language and the time I gave consent to manage this appointment request.",
+    consentButton: "Record consent & continue",
+    consentNote: "Your consent is recorded with the selected language and time. This demo stores it in this browser only. Discuss treatment-specific risks and consent with your stylist before the procedure.",
+    consentName: "Full name",
+    consentPhone: "Mobile number",
+    consentEmail: "Email (optional)",
+    offersTitle: "Make a style offer",
+    offersIntro:
+      "Share an inspiration photo, describe the look and offer your price. The salon can accept or decline your request.",
+    offerName: "Your name",
+    offerPhone: "Mobile number",
+    offerDescription: "Describe the look you want",
+    offerPrice: "Your price offer (R)",
+    offerPhoto: "Inspiration photo",
+    offerNote: "The salon will review your photo and price and update the status here. Sending an offer is a request, not a confirmed booking. This demo saves it in this browser only.",
+    submitOffer: "Send offer to salon",
+    myOffers: "Your offers",
+    accept: "Accept offer",
+    decline: "Decline",
+    pending: "Awaiting salon response",
+    accepted: "Accepted",
+    declined: "Declined",
+    noOffers: "No offers found for this phone number yet.",
+    choosePhoto: "Choose an image",
+    bookingTag: "YOUR BEAUTY APPOINTMENT",
+    bookTitle: "Book your moment.",
+    bookingIntro: "A few quick steps and you're on your way to your next favourite look.",
+    chooseTreatment: "Choose your treatment",
+    chooseStylist: "Select a stylist",
+    dateTime: "Date & available time",
+    appointmentDate: "Appointment date",
+    availableSlots: "Available time slots",
+    noSlots: "No slots available for this stylist on this date. Try another day.",
+    yourDetails: "Your details",
+    fullName: "Full name",
+    email: "Email (optional)",
+    paymentPreference: "Payment preference",
+    payAtSalon: "Pay at salon",
+    onlinePayment: "Request online payment",
+    onlinePaymentNote: "Online payment is not connected. No card details will be collected or charged.",
+    requestBooking: "Request booking",
+    yourAppointment: "YOUR APPOINTMENT",
+    selectTime: "Select a time",
+    startingFrom: "Starting from",
+    bookingConfirmation: "Booking requests require salon confirmation.",
+  },
+  xh: {
+    home: "Ekhaya",
+    services: "Iinkonzo",
+    book: "Bhukisha",
+    appointments: "Iibhukisho zam",
+    offers: "Yenza isithembiso",
+    offersTag: "IZITHEMBISO ZESITAYILE SE-SHEZZ",
+    offerWelcome: "Inkangeleko yakho entsha iqala ngombono.",
+    offerWelcomeText: "Ubonile isitayile osithandayo? Yabelana ngefoto nangexabiso ocinga ngalo. Iqela lethu liza kujonga lize likuphendule.",
+    offerStepDetails: "Sixelele ngawe",
+    offerPhotoCaption: "Yenza isitayile osifunayo siphile",
+    offerStyleBadge: "Isitayile sakho, ngendlela yakho",
+    offerStepStyle: "Chaza isitayile osifunayo",
+    offerStepPrice: "Ixabiso lakho",
+    offerPriceHelp: "Isaluni iza kuqinisekisa ixabiso lokugqibela ngaphambi kokubhukisha.",
+    offerPhotoHelp: "Khetha ifoto ecacileyo yesitayile osifunayo. JPG okanye PNG, ukuya kwi-8 MB.",
+    offerAsideTitle: "Masenze isitayile esikufaneleyo.",
+    offerAsideText: "Ifoto yakho inceda abalungisi baqonde iinkcukacha ukuze bakuxelele into enokwenzeka.",
+    offerAsideStep1: "Yabelana ngefoto uze uchaze isitayile",
+    offerAsideStep2: "Cebisa ngexabiso elikufaneleyo",
+    offerAsideStep3: "Lindela impendulo yesaluni",
+    offerDecisionNote: "Akukho dinga libhukishwayo de wena nesaluni niqinisekise iinkcukacha.",
+    reviewOffers: "Jonga izithembiso zabathengi",
+    noCustomerOffers: "Akukho zithembiso zabathengi okwangoku.",
+    consentRecord: "Imvume irekhodwe",
+    rewards: "Imivuzo",
+    consentTitle: "Ngaphambi kokukhetha unyango",
+    consentIntro:
+      "Nceda ufunde uze urekhode imvume yakho ngaphambi kokukhetha unyango.",
+    consentHeading: "Imvume yothethwano yedijithali",
+    consentText:
+      "Ndiyaqonda ukuba ndiza kuthetha nomlungisi ngeenkcukacha zonyango, imingcipheko, ezinye iindlela kunye nendlela yokunyamekela emva koko ngaphambi kokuba luqale. Ndingabuza imibuzo, ndikhethe ukungaqhubeki okanye ndirhoxise imvume yam nangaliphi na ixesha. Le mvume jikelele ayithathi indawo yemvume yonyango oluthile.",
+    privacyText:
+      "Ndiyavuma ukuba iSHEZZ irekhode igama lam, iinkcukacha zam zoqhagamshelwano, amazwi emvume, ulwimi nexesha lemvume ukuze ilawule isicelo sam sedinga.",
+    consentButton: "Rekhoda imvume uze uqhubeke",
+    consentNote: "Imvume yakho irekhodwa ngolwimi olukhethileyo nangexesha. Le demo iyigcina kule bhrawuza kuphela. Thetha nomlungisi ngemingcipheko yonyango oluthile uze unike imvume ngaphambi kwenkqubo.",
+    consentName: "Amagama apheleleyo",
+    consentPhone: "Inombolo yeselula",
+    consentEmail: "I-imeyile (ayinyanzelekanga)",
+    offersTitle: "Yenza isithembiso sesitayile",
+    offersIntro:
+      "Thumela ifoto yomzekelo, chaza isitayile uze unike ixabiso. Isaluni ingasamkela okanye isale isicelo sakho.",
+    offerName: "Igama lakho",
+    offerPhone: "Inombolo yeselula",
+    offerDescription: "Chaza isitayile osifunayo",
+    offerPrice: "Ixabiso olinikelayo (R)",
+    offerPhoto: "Ifoto yomzekelo",
+    offerNote: "Isaluni iza kujonga ifoto nexabiso lakho ize ihlaziye imeko yesicelo apha. Ukuthumela isithembiso akulilo idinga eliqinisekisiweyo. Le demo iyigcina kule bhrawuza kuphela.",
+    submitOffer: "Thumela isithembiso kwisaluni",
+    myOffers: "Izithembiso zakho",
+    accept: "Yamkela isithembiso",
+    decline: "Yala",
+    pending: "Ilindele impendulo yesaluni",
+    accepted: "Samkelwe",
+    declined: "Saliwe",
+    noOffers: "Akukho zithembiso zifunyenweyo kule nombolo.",
+    choosePhoto: "Khetha ifoto",
+    bookingTag: "IDINGA LAKHO LOBUHLE",
+    bookTitle: "Bhukisha ixesha lakho.",
+    bookingIntro: "Landela amanyathelo ambalwa ukuze ulungiselele isitayile osithandayo.",
+    chooseTreatment: "Khetha unyango",
+    chooseStylist: "Khetha umlungisi",
+    dateTime: "Umhla nexesha elifumanekayo",
+    appointmentDate: "Umhla wedinga",
+    availableSlots: "Amaxesha akhoyo",
+    noSlots: "Akukho xesha likhoyo kulo mhla kulo mlungisi. Zama omnye umhla.",
+    yourDetails: "Iinkcukacha zakho",
+    fullName: "Amagama apheleleyo",
+    email: "I-imeyile (ayinyanzelekanga)",
+    paymentPreference: "Indlela yokuhlawula",
+    payAtSalon: "Hlawula esaluni",
+    onlinePayment: "Cela intlawulo ye-intanethi",
+    onlinePaymentNote: "Intlawulo ye-intanethi ayikasebenzi. Akukho nkcukacha zekhadi ziya kuqokelelwa okanye kuhlawuliswa.",
+    requestBooking: "Cela idinga",
+    yourAppointment: "IDINGA LAKHO",
+    selectTime: "Khetha ixesha",
+    startingFrom: "Ixabiso liqala ku",
+    bookingConfirmation: "Izicelo zamadinga kufuneka ziqinisekiswe sisaluni.",
+  },
+  zu: {
+    home: "Ekhaya",
+    services: "Amasevisi",
+    book: "Bhukha i-aphoyintimenti",
+    appointments: "Ama-aphoyintimenti ami",
+    offers: "Yenza isithembiso",
+    offersTag: "IZITHEMBISO ZESITAYELA ZESHEZZ",
+    offerWelcome: "Isitayela sakho esisha siqala ngombono.",
+    offerWelcomeText: "Ubone isitayela osithandayo? Yabelana ngesithombe sento oyithandayo kanye nenani ocabanga ngalo. Ithimba lethu lizobheka bese likuphendula.",
+    offerStepDetails: "Sitshele ngawe",
+    offerPhotoCaption: "Yenza umbono wakho ubonakale",
+    offerStyleBadge: "Isitayela sakho, ngendlela yakho",
+    offerStepStyle: "Sitshele ngesitayela osifunayo",
+    offerStepPrice: "Isithembiso sakho",
+    offerPriceHelp: "Isaluni izoqinisekisa inani lokugcina ngaphambi kokubhukha.",
+    offerPhotoHelp: "Khetha isithombe esicacile sesitayela osifunayo. JPG noma PNG, esingeqi ku-8 MB.",
+    offerAsideTitle: "Masidale isitayela esikufanele.",
+    offerAsideText: "Isithombe sakho sisiza abalungisi bethu baqonde imininingwane ukuze bakutshele okungenzeka.",
+    offerAsideStep1: "Yabelana ngesithombe bese uchaza isitayela sakho",
+    offerAsideStep2: "Phakamisa inani elikulungele",
+    offerAsideStep3: "Lindela impendulo yesaluni",
+    offerDecisionNote: "I-aphoyintimenti ayibhukhiwe kuze kube wena nesaluni niqinisekisa imininingwane.",
+    reviewOffers: "Buyekeza izithembiso zamakhasimende",
+    noCustomerOffers: "Azikho izithembiso zamakhasimende okwamanje.",
+    consentRecord: "Imvume iqoshiwe",
+    rewards: "Imiklomelo",
+    consentTitle: "Ngaphambi kokukhetha ukwelashwa",
+    consentIntro: "Sicela ufunde futhi uqophe imvume yakho ngaphambi kokukhetha ukwelashwa.",
+    consentHeading: "Imvume yokubonisana yedijithali",
+    consentText: "Ngiyaqonda ukuthi ngaphambi kokuba ukwelashwa kuqale, ngizoxoxa nomlungisi wami ngokwelashwa, izingozi ezingaba khona, ezinye izindlela nokunakekelwa kwangemva kwalokho. Ngingabuza imibuzo, ngikhethe ukungaqhubeki, noma ngihoxise imvume yami noma nini. Le mvume ejwayelekile ayithathi indawo yemvume ethile yokwelashwa.",
+    privacyText: "Ngiyavuma ukuthi iSHEZZ iqophe igama lami, imininingwane yokuxhumana, umbhalo wemvume, ulimi nesikhathi enginike ngaso imvume ukuze iphathe isicelo sami se-aphoyintimenti.",
+    consentButton: "Qopha imvume uqhubeke",
+    consentNote: "Imvume yakho iqoshwa ngolimi olukhethile nangesikhathi. Le demo iyigcina kule browser kuphela. Xoxa nomlungisi ngezingozi zempatho ethile nemvume ngaphambi kokuqala.",
+    consentName: "Amagama aphelele",
+    consentPhone: "Inombolo yeselula",
+    consentEmail: "I-imeyili (akuphoqelekile)",
+    offersTitle: "Yenza isithembiso sesitayela",
+    offersIntro: "Yabelana ngesithombe esikukhuthazayo, uchaze isitayela bese uphakamisa inani lakho. Isaluni ingasamukela noma isenqabe isicelo sakho.",
+    offerName: "Igama lakho",
+    offerPhone: "Inombolo yeselula",
+    offerDescription: "Chaza isitayela osifunayo",
+    offerPrice: "Inani oliphakamisayo (R)",
+    offerPhoto: "Isithombe esikukhuthazayo",
+    offerNote: "Isaluni izobuyekeza isithombe nenani lakho bese ibuyekeza isimo lapha. Ukuthumela isithembiso akusho ukuthi i-aphoyintimenti isiqinisekisiwe. Le demo igcina lokhu kule browser kuphela.",
+    submitOffer: "Thumela isithembiso esaluni",
+    myOffers: "Izithembiso zakho",
+    accept: "Yamukela isithembiso",
+    decline: "Yenqaba",
+    pending: "Kulindelwe impendulo yesaluni",
+    accepted: "Samukelwe",
+    declined: "Senqatshiwe",
+    noOffers: "Azikho izithembiso ezitholakele kule nombolo okwamanje.",
+    choosePhoto: "Khetha isithombe",
+    bookingTag: "I-APHOYINTIMENTI YAKHO YOBUHLE",
+    bookTitle: "Bhukha isikhathi sakho.",
+    bookingIntro: "Landela izinyathelo ezimbalwa ukuze ulungiselele isitayela osithandayo.",
+    chooseTreatment: "Khetha ukwelashwa",
+    chooseStylist: "Khetha umlungisi",
+    dateTime: "Usuku nesikhathi esikhona",
+    appointmentDate: "Usuku lwe-aphoyintimenti",
+    availableSlots: "Izikhathi ezikhona",
+    noSlots: "Azikho izikhathi zalo mlungisi ngalolu suku. Zama olunye usuku.",
+    yourDetails: "Imininingwane yakho",
+    fullName: "Amagama aphelele",
+    email: "I-imeyili (akuphoqelekile)",
+    paymentPreference: "Indlela yokukhokha",
+    payAtSalon: "Khokha esaluni",
+    onlinePayment: "Cela ukukhokha nge-inthanethi",
+    onlinePaymentNote: "Ukukhokha nge-inthanethi akukaxhunywa. Imininingwane yekhadi ngeke iqoqwe noma kukhokhiswe.",
+    requestBooking: "Cela ukubhukha",
+    yourAppointment: "I-APHOYINTIMENTI YAKHO",
+    selectTime: "Khetha isikhathi",
+    startingFrom: "Iqala ku",
+    bookingConfirmation: "Izicelo zokubhukha zidinga ukuqinisekiswa yisaluni.",
+  },
+  af: {
+    home: "Tuis",
+    services: "Dienste",
+    book: "Bespreek afspraak",
+    appointments: "My besprekings",
+    offers: "Maak 'n aanbod",
+    offersTag: "SHEZZ-STYLAANBIEDINGE",
+    offerWelcome: "Jou volgende voorkoms begin met 'n idee.",
+    offerWelcomeText: "Het jy 'n styl gesien waarvan jy hou? Deel jou inspirasie en die prys wat jy in gedagte het. Ons span sal daarna kyk en jou antwoord.",
+    offerStepDetails: "'n Bietjie oor jou",
+    offerPhotoCaption: "Bring jou inspirasie tot lewe",
+    offerStyleBadge: "Jou styl, jou manier",
+    offerStepStyle: "Vertel ons van jou styl",
+    offerStepPrice: "Jou aanbod",
+    offerPriceHelp: "Die salon bevestig die finale prys voordat enigiets bespreek word.",
+    offerPhotoHelp: "Kies 'n duidelike foto van die styl wat jy wil hê. JPG of PNG, tot 8 MB.",
+    offerAsideTitle: "Kom ons skep 'n voorkoms wat by jou pas.",
+    offerAsideText: "Jou inspirasie help ons stiliste om die besonderhede te verstaan en jou te vertel wat moontlik is.",
+    offerAsideStep1: "Deel 'n foto en beskryf jou styl",
+    offerAsideStep2: "Stel 'n prys voor wat vir jou werk",
+    offerAsideStep3: "Wag vir die salon se antwoord",
+    offerDecisionNote: "Geen afspraak word bespreek totdat jy en die salon die besonderhede bevestig nie.",
+    reviewOffers: "Hersien kliënte-aanbiedinge",
+    noCustomerOffers: "Geen kliënte-aanbiedinge nog nie.",
+    consentRecord: "Toestemming aangeteken",
+    rewards: "Belonings",
+    consentTitle: "Voordat jy 'n behandeling kies",
+    consentIntro:
+      "Lees en teken asseblief jou toestemming aan voordat jy 'n behandeling kies.",
+    consentHeading: "Digitale konsultasietoestemming",
+    consentText:
+      "Ek verstaan dat ek die behandeling, moontlike risiko's, alternatiewe en nabehandeling met my stilis sal bespreek voordat dit begin. Ek kan vrae vra, besluit om nie voort te gaan nie, of my toestemming enige tyd terugtrek. Hierdie algemene toestemming vervang nie behandeling-spesifieke toestemming nie.",
+    privacyText:
+      "Ek stem in dat SHEZZ my naam, kontakbesonderhede, toestemmingswoording, taal en die tyd van my toestemming aanteken om hierdie afspraakversoek te hanteer.",
+    consentButton: "Teken toestemming aan en gaan voort",
+    consentNote: "Jou toestemming word met die gekose taal en tyd aangeteken. Hierdie demo stoor dit net in hierdie blaaier. Bespreek behandelingspesifieke risiko's en toestemming met jou stilis voor die prosedure.",
+    consentName: "Volle naam",
+    consentPhone: "Selfoonnommer",
+    consentEmail: "E-pos (opsioneel)",
+    offersTitle: "Maak 'n styl-aanbod",
+    offersIntro:
+      "Deel 'n inspirasiefoto, beskryf die styl en bied jou prys aan. Die salon kan jou versoek aanvaar of afwys.",
+    offerName: "Jou naam",
+    offerPhone: "Selfoonnommer",
+    offerDescription: "Beskryf die styl wat jy wil hê",
+    offerPrice: "Jou prysaanbod (R)",
+    offerPhoto: "Inspirasiefoto",
+    offerNote: "Die salon sal jou foto en prys nagaan en die status hier bywerk. 'n Aanbod is 'n versoek, nie 'n bevestigde bespreking nie. Hierdie demo stoor dit net in hierdie blaaier.",
+    submitOffer: "Stuur aanbod na salon",
+    myOffers: "Jou aanbiedinge",
+    accept: "Aanvaar aanbod",
+    decline: "Wys af",
+    pending: "Wag op salon se antwoord",
+    accepted: "Aanvaar",
+    declined: "Afgewys",
+    noOffers: "Geen aanbiedinge vir hierdie nommer gevind nie.",
+    choosePhoto: "Kies 'n prent",
+    bookingTag: "JOU SKOONHEIDSAFSPRAAK",
+    bookTitle: "Bespreek jou oomblik.",
+    bookingIntro: "Volg 'n paar eenvoudige stappe om jou volgende gunsteling voorkoms te bespreek.",
+    chooseTreatment: "Kies jou behandeling",
+    chooseStylist: "Kies 'n stilis",
+    dateTime: "Datum en beskikbare tyd",
+    appointmentDate: "Afspraakdatum",
+    availableSlots: "Beskikbare tye",
+    noSlots: "Geen tye is op hierdie datum by dié stilis beskikbaar nie. Probeer 'n ander dag.",
+    yourDetails: "Jou besonderhede",
+    fullName: "Volle naam",
+    email: "E-pos (opsioneel)",
+    paymentPreference: "Betaalvoorkeur",
+    payAtSalon: "Betaal by die salon",
+    onlinePayment: "Versoek aanlynbetaling",
+    onlinePaymentNote: "Aanlynbetaling is nie gekoppel nie. Geen kaartbesonderhede word ingesamel of gehef nie.",
+    requestBooking: "Versoek bespreking",
+    yourAppointment: "JOU AFSPRAAK",
+    selectTime: "Kies 'n tyd",
+    startingFrom: "Begin vanaf",
+    bookingConfirmation: "Besprekingsversoeke vereis salonbevestiging.",
+  },
+  st: {
+    home: "Lehae",
+    services: "Litšebeletso",
+    book: "Beha nako",
+    appointments: "Linako tsa ka",
+    offers: "Etsa tlhahiso",
+    offersTag: "LITLHAHISO TSA SETAELE SA SHEZZ",
+    offerWelcome: "Ponahalo ea hao e ncha e qala ka mohopolo.",
+    offerWelcomeText: "U bone setaele seo u se ratang? Arolelana foto le theko eo u e nahanneng. Sehlopha sa rona se tla e sheba ebe se u araba.",
+    offerStepDetails: "Re bolelle hanyane ka uena",
+    offerPhotoCaption: "Phethahatsa mohopolo oa hao",
+    offerStyleBadge: "Setaele sa hao, ka tsela ea hao",
+    offerStepStyle: "Re bolelle ka ponahalo eo u e batlang",
+    offerStepPrice: "Tlhahiso ea hao",
+    offerPriceHelp: "Salune e tla netefatsa theko ea ho qetela pele ho behoa nako.",
+    offerPhotoHelp: "Khetha foto e hlakileng ea setaele seo u se batlang. JPG kapa PNG, boholo bo fihlang ho 8 MB.",
+    offerAsideTitle: "Ha re etse ponahalo e u tšoanelang.",
+    offerAsideText: "Mohlala oa hao o thusa litsebi tsa rona ho utloisisa lintlha le ho u bolella se ka etsoang.",
+    offerAsideStep1: "Arolelana foto 'me u hlalose setaele sa hao",
+    offerAsideStep2: "Fana ka theko e u loketseng",
+    offerAsideStep3: "Emela karabo ea salune",
+    offerDecisionNote: "Nako ha e so behoe ho fihlela uena le salune le netefatsa lintlha.",
+    reviewOffers: "Hlahloba litlhahiso tsa bareki",
+    noCustomerOffers: "Ha ho litlhahiso tsa bareki hajoale.",
+    consentRecord: "Tumello e tlalehiloe",
+    rewards: "Meputso",
+    consentTitle: "Pele u khetha kalafo",
+    consentIntro: "Ka kopo bala 'me u tlalehe tumello ea hao pele u khetha kalafo.",
+    consentHeading: "Tumello ea puisano ea dijithale",
+    consentText: "Kea utloisisa hore pele kalafo e qala, ke tla buisana le setsebi sa ka ka kalafo, likotsi tse ka bang teng, mekhoa e meng le tlhokomelo ea kamorao. Nka botsa lipotso, ka khetha ho se tsoele pele, kapa ka hula tumello ea ka neng kapa neng. Tumello ena e akaretsang ha e nke sebaka sa tumello e khethehileng ea kalafo.",
+    privacyText: "Ke lumela hore SHEZZ e tlalehe lebitso la ka, lintlha tsa puisano, mantsoe a tumello, puo le nako eo ke faneng ka tumello ka eona ho tsamaisa kopo ena ea nako.",
+    consentButton: "Tlaleha tumello 'me u tsoele pele",
+    consentNote: "Tumello ea hao e tlalehoa ka puo le nako tseo u li khethileng. Demo ena e e boloka ho sebatli sena feela. Buisana le setsebi ka likotsi le tumello ea kalafo e itseng pele e qala.",
+    consentName: "Mabitso a felletseng",
+    consentPhone: "Nomoro ea selefouno",
+    consentEmail: "Imeile (ha e qobelloe)",
+    offersTitle: "Etsa tlhahiso ea setaele",
+    offersIntro: "Arolelana foto e u susumelitseng, hlalosa ponahalo 'me u fane ka theko ea hao. Salune e ka amohela kapa ea hana kopo ea hao.",
+    offerName: "Lebitso la hao",
+    offerPhone: "Nomoro ea selefouno",
+    offerDescription: "Hlalosa ponahalo eo u e batlang",
+    offerPrice: "Theko eo u e sisinyang (R)",
+    offerPhoto: "Foto e u susumelitseng",
+    offerNote: "Salune e tla hlahloba foto le theko ea hao ebe e ntlafatsa boemo mona. Ho romela tlhahiso ha se ho netefatsa nako. Demo ena e boloka lintlha ho sebatli sena feela.",
+    submitOffer: "Romela tlhahiso saluneng",
+    myOffers: "Litlhahiso tsa hao",
+    accept: "Amohela tlhahiso",
+    decline: "Hana",
+    pending: "E emetse karabo ea salune",
+    accepted: "E amohetsoe",
+    declined: "E hannoe",
+    noOffers: "Ha ho litlhahiso tse fumanoeng nomorong ena hajoale.",
+    choosePhoto: "Khetha foto",
+    bookingTag: "NAKO EA HAO EA BOTLE",
+    bookTitle: "Beha nako ea hao.",
+    bookingIntro: "Latela mehato e seng mekae hore u itokisetse setaele seo u se ratang.",
+    chooseTreatment: "Khetha kalafo",
+    chooseStylist: "Khetha setsebi",
+    dateTime: "Letsatsi le nako e fumanehang",
+    appointmentDate: "Letsatsi la kopano",
+    availableSlots: "Linako tse fumanehang",
+    noSlots: "Ha ho linako tse fumanehang ho setsebi sena letsatsing lena. Leka letsatsi le leng.",
+    yourDetails: "Lintlha tsa hao",
+    fullName: "Mabitso a felletseng",
+    email: "Imeile (ha e qobelloe)",
+    paymentPreference: "Mokhoa oa ho lefa",
+    payAtSalon: "Lefa saluneng",
+    onlinePayment: "Kopa tefo ea inthanete",
+    onlinePaymentNote: "Tefo ea inthanete ha e so hokeloe. Lintlha tsa karete li ke ke tsa bokelloa kapa tsa lefisoa.",
+    requestBooking: "Kopa ho beha nako",
+    yourAppointment: "NAKO EA HAO",
+    selectTime: "Khetha nako",
+    startingFrom: "E qala ho",
+    bookingConfirmation: "Likopo tsa ho beha nako li hloka netefatso ea salune.",
+  },
+};
 const dateISO = (d) => {
   let y = d.getFullYear(),
     m = String(d.getMonth() + 1).padStart(2, "0"),
     a = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${a}`;
 };
-const customerAccount = (user) => ({
-  role: "customer",
-  id: user.id,
-  email: user.email || "",
-  name: user.user_metadata?.full_name || "",
-  phone: user.user_metadata?.phone || "",
-});
 function App() {
   const [chatOpen, setChatOpen] = useState(false),
     [chatInput, setChatInput] = useState(""),
@@ -146,14 +529,8 @@ function App() {
     [email, setEmail] = useState(""),
     [account, setAccount] = useState(null),
     [loginRole, setLoginRole] = useState("customer"),
-    [customerAuthMode, setCustomerAuthMode] = useState("signin"),
     [loginEmail, setLoginEmail] = useState(""),
     [loginPhone, setLoginPhone] = useState(""),
-    [loginName, setLoginName] = useState(""),
-    [loginPassword, setLoginPassword] = useState(""),
-    [authClient, setAuthClient] = useState(null),
-    [authStatus, setAuthStatus] = useState("loading"),
-    [authBusy, setAuthBusy] = useState(false),
     [bookings, setBookings] = useState(() => load("shezz_bookings", [])),
     [notice, setNotice] = useState(""),
     [rewardPhone, setRewardPhone] = useState(""),
@@ -161,87 +538,64 @@ function App() {
     [staffPin, setStaffPin] = useState(""),
     [staffMode, setStaffMode] = useState(false),
     [staffAuth, setStaffAuth] = useState(false),
+    [language, setLanguage] = useState(() => {
+      const savedLanguage = load("shezz_language", "en");
+      return ["en", "xh", "zu", "af", "st"].includes(savedLanguage) ? savedLanguage : "en";
+    }),
+    [activeConsent, setActiveConsent] = useState(null),
+    [consents, setConsents] = useState(() => load("shezz_consents", [])),
+    [offers, setOffers] = useState(() => load("shezz_offers", [])),
+    [offerName, setOfferName] = useState(""),
+    [offerPhone, setOfferPhone] = useState(""),
+    [offerDescription, setOfferDescription] = useState(""),
+    [offerPrice, setOfferPrice] = useState(""),
+    [offerImage, setOfferImage] = useState(""),
+    [offerImageName, setOfferImageName] = useState(""),
+    [consentChecked, setConsentChecked] = useState(false),
+    [privacyChecked, setPrivacyChecked] = useState(false),
     [rewardCode, setRewardCode] = useState(""),
     [payment, setPayment] = useState("Pay at salon"),
     [rewardDiscount, setRewardDiscount] = useState(10);
-  useEffect(() => {
-    let active = true;
-    let authSubscription;
-    async function connectAuth() {
-      try {
-        const response = await fetch("/api/config");
-        if (!response.ok) throw new Error("Supabase configuration unavailable.");
-        const config = await response.json();
-        if (!config.enabled || !config.supabaseUrl || !config.supabaseAnonKey) {
-          if (active) setAuthStatus("unavailable");
-          return;
-        }
-        const { createClient } = await import("@supabase/supabase-js");
-        const client = createClient(config.supabaseUrl, config.supabaseAnonKey);
-        const { data, error } = await client.auth.getSession();
-        if (error) throw error;
-        if (!active) return;
-        setAuthClient(client);
-        setAuthStatus("ready");
-        if (data.session?.user) {
-          const profile = customerAccount(data.session.user);
-          setAccount(profile);
-          setCustomer(profile.name);
-          setEmail(profile.email);
-          setPhone(profile.phone);
-          setRewardPhone(profile.phone);
-          setPage("appointments");
-        }
-        const { data: authState } = client.auth.onAuthStateChange((_event, session) => {
-          if (!active) return;
-          if (session?.user) {
-            setAccount(customerAccount(session.user));
-          } else {
-            setAccount((current) =>
-              current?.role === "customer" ? null : current,
-            );
-          }
-        });
-        authSubscription = authState.subscription;
-      } catch {
-        if (active) setAuthStatus("unavailable");
-      }
-    }
-    connectAuth();
-    return () => {
-      active = false;
-      authSubscription?.unsubscribe();
-    };
-  }, []);
   useEffect(
     () => localStorage.setItem("shezz_bookings", JSON.stringify(bookings)),
     [bookings],
   );
+  useEffect(
+    () => localStorage.setItem("shezz_consents", JSON.stringify(consents)),
+    [consents],
+  );
+  useEffect(
+    () => localStorage.setItem("shezz_offers", JSON.stringify(offers)),
+    [offers],
+  );
+  useEffect(
+    () => localStorage.setItem("shezz_language", JSON.stringify(language)),
+    [language],
+  );
+  const t = translations[language] || translations.en;
   useEffect(() => {
     if (!notice) return;
     let t = setTimeout(() => setNotice(""), 5500);
     return () => clearTimeout(t);
   }, [notice]);
   const go = (p) => {
+    if (p === "book") {
+      setActiveConsent(null);
+      setConsentChecked(false);
+      setPrivacyChecked(false);
+    }
     setPage(p);
     setMenu(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
-  async function signOut() {
-    if (account?.role === "customer" && authClient) {
-      const { error } = await authClient.auth.signOut();
-      if (error) {
-        setNotice("Could not sign out. Please try again.");
-        return;
-      }
-    }
+  function signOut() {
     setAccount(null);
     setStaffAuth(false);
     setStaffPin("");
     setNotice("You have signed out.");
     go("home");
   }
-  async function signIn(event) {
+  function signIn(event) {
     event.preventDefault();
     if (loginRole === "staff") {
       if (staffPin !== "2468") {
@@ -254,67 +608,20 @@ function App() {
       go("admin");
       return;
     }
-    if (!authClient) {
-      setNotice("Customer accounts are unavailable until Supabase is configured.");
+    if (loginPhone.replace(/\D/g, "").length < 9) {
+      setNotice("Enter the phone number used for your bookings.");
       return;
     }
-    setAuthBusy(true);
-    try {
-      if (customerAuthMode === "signup") {
-        if (!loginName.trim()) {
-          setNotice("Enter your full name to create an account.");
-          return;
-        }
-        if (loginPhone.replace(/\D/g, "").length < 9) {
-          setNotice("Enter a valid mobile number to create an account.");
-          return;
-        }
-        const { data, error } = await authClient.auth.signUp({
-          email: loginEmail.trim(),
-          password: loginPassword,
-          options: {
-            data: {
-              full_name: loginName.trim(),
-              phone: loginPhone.trim(),
-            },
-            emailRedirectTo: window.location.origin,
-          },
-        });
-        if (error) throw error;
-        if (!data.session || !data.user) {
-          setCustomerAuthMode("signin");
-          setNotice("Account created. Check your email to confirm, then sign in.");
-          return;
-        }
-        const profile = customerAccount(data.user);
-        setAccount(profile);
-        setCustomer(profile.name);
-        setEmail(profile.email);
-        setPhone(profile.phone);
-        setRewardPhone(profile.phone);
-        setNotice("Your SHEZZ account is ready.");
-      } else {
-        const { data, error } = await authClient.auth.signInWithPassword({
-          email: loginEmail.trim(),
-          password: loginPassword,
-        });
-        if (error) throw error;
-        const profile = customerAccount(data.user);
-        setAccount(profile);
-        setCustomer(profile.name);
-        setEmail(profile.email);
-        setPhone(profile.phone);
-        setRewardPhone(profile.phone);
-        setNotice("Welcome back. You are signed in.");
-      }
-      setStaffAuth(false);
-      setLoginPassword("");
-      go("appointments");
-    } catch (error) {
-      setNotice(error.message || "Could not sign in. Please try again.");
-    } finally {
-      setAuthBusy(false);
-    }
+    const signedInPhone = loginPhone.trim();
+    setAccount({
+      role: "customer",
+      email: loginEmail.trim(),
+      phone: signedInPhone,
+    });
+    setStaffAuth(false);
+    setRewardPhone(signedInPhone);
+    setNotice("Welcome back. Your appointments are ready.");
+    go("appointments");
   }
   const service = services.find((s) => s.id === chosen);
   const filtered =
@@ -353,6 +660,11 @@ function App() {
   const redeemed = clientBookings.filter((b) => b.rewardRedeemed).length;
   const eligible = completed >= 3 * (redeemed + 1);
   const pending = clientBookings.filter((b) => b.status === "Pending");
+  const customerOffers = offers.filter(
+    (offer) =>
+      offer.phone.replace(/\D/g, "") === offerPhone.replace(/\D/g, "") &&
+      offerPhone.replace(/\D/g, "").length >= 9,
+  );
   async function sendChat() {
     const question = chatInput.trim();
     if (!question || chatBusy) return;
@@ -384,6 +696,10 @@ function App() {
     }
   }
   function book() {
+    if (!activeConsent) {
+      setNotice("Please record your consent before selecting a treatment.");
+      return;
+    }
     if (!customer.trim() || phone.replace(/\D/g, "").length < 9 || !time) {
       setNotice(
         "Please enter your name, valid phone number and an available time.",
@@ -408,10 +724,12 @@ function App() {
         time,
         status: "Pending",
         payment,
+        consentId: activeConsent.id,
         rewardRedeemed: false,
       },
     ]);
     setRewardPhone(phone);
+    setActiveConsent(null);
     setNotice(
       "Booking request saved! Your appointment is pending salon confirmation.",
     );
@@ -439,6 +757,103 @@ function App() {
   function updateBooking(id, status) {
     setBookings((v) => v.map((b) => (b.id === id ? { ...b, status } : b)));
     setNotice("Appointment updated.");
+  }
+  function recordConsent() {
+    if (!customer.trim() || phone.replace(/\D/g, "").length < 9) {
+      setNotice("Enter your name and a valid phone number to record consent.");
+      return;
+    }
+    if (!consentChecked || !privacyChecked) {
+      setNotice("Please confirm both consent statements before continuing.");
+      return;
+    }
+    const consent = {
+      id: "SHZ-CONSENT-" + Date.now().toString(36).toUpperCase(),
+      name: customer.trim(),
+      phone: phone.trim(),
+      email: email.trim(),
+      language,
+      consentText: t.consentText,
+      privacyText: t.privacyText,
+      recordedAt: new Date().toISOString(),
+      version: "1.0",
+    };
+    setConsents((v) => [...v, consent]);
+    setActiveConsent(consent);
+    setNotice("Your consent has been recorded. You can now choose a treatment.");
+  }
+  function handleOfferPhoto(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/") || file.size > 8 * 1024 * 1024) {
+      setNotice("Choose an image smaller than 8 MB.");
+      event.target.value = "";
+      return;
+    }
+    const reader = new FileReader();
+    reader.onerror = () => setNotice("The image could not be read. Please try another.");
+    reader.onload = () => {
+      const image = new Image();
+      image.onerror = () => setNotice("The selected file is not a readable image.");
+      image.onload = () => {
+        const scale = Math.min(1, 1200 / Math.max(image.width, image.height));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(image.width * scale);
+        canvas.height = Math.round(image.height * scale);
+        const context = canvas.getContext("2d");
+        if (!context) {
+          setNotice("Your browser could not prepare this image.");
+          return;
+        }
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+        let compressed = canvas.toDataURL("image/jpeg", 0.62);
+        if (compressed.length > 900_000) {
+          compressed = canvas.toDataURL("image/jpeg", 0.42);
+        }
+        if (compressed.length > 900_000) {
+          setNotice("This image is too large to save in the demo. Please choose a smaller image.");
+          return;
+        }
+        setOfferImage(compressed);
+        setOfferImageName(file.name);
+      };
+      image.src = String(reader.result);
+    };
+    reader.readAsDataURL(file);
+    event.target.value = "";
+  }
+  function submitOffer(event) {
+    event.preventDefault();
+    if (!offerName.trim() || offerPhone.replace(/\D/g, "").length < 9 || !offerDescription.trim() || Number(offerPrice) <= 0) {
+      setNotice("Enter your name, a valid phone number, a description and a price above zero.");
+      return;
+    }
+    if (!offerImage) {
+      setNotice("Please add an inspiration photo to your offer.");
+      return;
+    }
+    const offer = {
+      id: "SHZ-OFFER-" + Date.now().toString(36).toUpperCase(),
+      name: offerName.trim(),
+      phone: offerPhone.trim(),
+      description: offerDescription.trim(),
+      price: Number(offerPrice),
+      image: offerImage,
+      imageName: offerImageName,
+      status: "Pending",
+      createdAt: new Date().toISOString(),
+    };
+    setOffers((v) => [...v, offer]);
+    setRewardPhone(offerPhone.trim());
+    setOfferDescription("");
+    setOfferPrice("");
+    setOfferImage("");
+    setOfferImageName("");
+    setNotice("Your offer has been sent to the salon for review.");
+  }
+  function updateOffer(id, status) {
+    setOffers((v) => v.map((offer) => offer.id === id ? { ...offer, status } : offer));
+    setNotice(`Offer ${status.toLowerCase()}.`);
   }
   function redeem() {
     if (!staffAuth) return;
@@ -482,11 +897,12 @@ function App() {
           </button>
           <nav className={menu ? "open" : ""}>
             {[
-              ["home", "Home"],
-              ["services", "Services"],
-              ["book", "Book Appointment"],
-              ["appointments", "My Bookings"],
-              ["rewards", "Rewards"],
+              ["home", t.home],
+              ["services", t.services],
+              ["book", t.book],
+              ["appointments", t.appointments],
+              ["offers", t.offers],
+              ["rewards", t.rewards],
               ...(account?.role === "staff" ? [["admin", "Dashboard"]] : []),
               ["login", account ? "Sign out" : "Sign in"],
             ].map(([p, t]) => (
@@ -517,6 +933,26 @@ function App() {
                 ? "My bookings"
                 : "Sign in"} <ArrowRight size={16} />
           </button>
+          <label className="languagePicker">
+            <span className="srOnly">Language</span>
+            <select
+              value={language}
+              onChange={(event) => {
+                setLanguage(event.target.value);
+                if (!activeConsent) {
+                  setConsentChecked(false);
+                  setPrivacyChecked(false);
+                }
+              }}
+              aria-label="Language"
+            >
+              <option value="en">English</option>
+              <option value="xh">isiXhosa</option>
+              <option value="zu">isiZulu</option>
+              <option value="af">Afrikaans</option>
+              <option value="st">Sesotho</option>
+            </select>
+          </label>
           <button className="hamburger" onClick={() => setMenu(!menu)}>
             {menu ? <X /> : <Menu />}
           </button>
@@ -547,19 +983,9 @@ function App() {
               />
             </div>
             <section className="loginPanel" aria-labelledby="login-title">
-              <h2 id="login-title">
-                {loginRole === "staff"
-                  ? "Staff sign in"
-                  : customerAuthMode === "signup"
-                    ? "Create your account"
-                    : "Sign in"}
-              </h2>
+              <h2 id="login-title">Sign in</h2>
               <p className="loginSubheading">
-                {loginRole === "staff"
-                  ? "Sign in to manage salon appointments."
-                  : customerAuthMode === "signup"
-                    ? "Create an account to keep your appointments together."
-                    : "Welcome back to SHEZZ Beauty Studio."}
+                Choose how you use SHEZZ Beauty Studio.
               </p>
               <div className="loginRoles" aria-label="Choose account type">
                 <button
@@ -582,33 +1008,6 @@ function App() {
               <form className="loginForm" onSubmit={signIn}>
                 {loginRole === "customer" ? (
                   <>
-                    {customerAuthMode === "signup" && (
-                      <>
-                        <label>
-                          Full name
-                          <input
-                            type="text"
-                            autoComplete="name"
-                            placeholder="Your full name"
-                            value={loginName}
-                            onChange={(event) => setLoginName(event.target.value)}
-                            required
-                          />
-                        </label>
-                        <label>
-                          Mobile number
-                          <input
-                            type="tel"
-                            autoComplete="tel"
-                            placeholder="e.g. 082 123 4567"
-                            value={loginPhone}
-                            onChange={(event) => setLoginPhone(event.target.value)}
-                            minLength={9}
-                            required
-                          />
-                        </label>
-                      </>
-                    )}
                     <label>
                       Email address
                       <input
@@ -621,71 +1020,24 @@ function App() {
                       />
                     </label>
                     <label>
-                      Password
+                      Mobile number
                       <input
-                        type="password"
-                        autoComplete={
-                          customerAuthMode === "signup"
-                            ? "new-password"
-                            : "current-password"
-                        }
-                        placeholder={
-                          customerAuthMode === "signup"
-                            ? "Create a password"
-                            : "Enter your password"
-                        }
-                        value={loginPassword}
-                        onChange={(event) =>
-                          setLoginPassword(event.target.value)
-                        }
-                        minLength={6}
+                        type="tel"
+                        autoComplete="tel"
+                        placeholder="e.g. 082 123 4567"
+                        value={loginPhone}
+                        onChange={(event) => setLoginPhone(event.target.value)}
                         required
                       />
                     </label>
-                    {authStatus === "loading" ? (
-                      <small className="authNotice" role="status">
-                        Connecting to the customer account service...
-                      </small>
-                    ) : authStatus === "unavailable" ? (
-                      <small className="authNotice" role="status">
-                        Customer accounts are unavailable until Supabase is
-                        configured on the server.
-                      </small>
-                    ) : customerAuthMode === "signup" ? (
-                      <small>
-                        Your account is saved securely with Supabase. Passwords
-                        are handled by Supabase Auth.
-                      </small>
-                    ) : null}
-                    <button
-                      className="btn primary full"
-                      type="submit"
-                      disabled={authBusy || authStatus !== "ready"}
-                    >
-                      {authBusy
-                        ? "Please wait..."
-                        : customerAuthMode === "signup"
-                          ? "Create account"
-                          : "Sign in"} <ArrowRight size={17} />
+                    <small>
+                      Enter your email and the phone number used when booking.
+                      This demo finds appointments saved in this browser by
+                      phone number.
+                    </small>
+                    <button className="btn primary full" type="submit">
+                      Continue to my bookings <ArrowRight size={17} />
                     </button>
-                    <p className="accountModeSwitch">
-                      {customerAuthMode === "signup"
-                        ? "Already have an account?"
-                        : "New to SHEZZ?"}{" "}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setCustomerAuthMode((mode) =>
-                            mode === "signup" ? "signin" : "signup",
-                          );
-                          setNotice("");
-                        }}
-                      >
-                        {customerAuthMode === "signup"
-                          ? "Sign in"
-                          : "Create an account"}
-                      </button>
-                    </p>
                   </>
                 ) : (
                   <>
@@ -712,6 +1064,149 @@ function App() {
               </form>
             </section>
           </div>
+        </main>
+      )}
+      {page === "offers" && (
+        <main className="container section offerPage">
+          <section className="offerHero">
+            <div className="offerHeroCopy">
+              <span className="kicker">{t.offersTag}</span>
+              <h1>{t.offerWelcome}</h1>
+              <p>{t.offerWelcomeText}</p>
+              <div className="offerHeroNote">
+                <ShieldCheck size={18} />
+                <span>{t.offerDecisionNote}</span>
+              </div>
+            </div>
+            <div className="offerHeroImage">
+              <img src={portfolio[5]} alt="Braided style inspiration at SHEZZ Beauty Studio" />
+              <div className="offerImageCaption">
+                <span className="offerImageMark"><ImagePlus size={18} /></span>
+                <span>{t.offerPhoto}<small>{t.offerPhotoCaption}</small></span>
+              </div>
+            </div>
+          </section>
+          <div className="offerLayout">
+            <form className="formCard offerForm" onSubmit={submitOffer}>
+              <span className="offerFormEyebrow">01&nbsp; / &nbsp;{t.offerStepDetails}</span>
+              <div className="offerContactFields">
+                <label>
+                  {t.offerName}
+                  <input
+                    value={offerName}
+                    onChange={(event) => setOfferName(event.target.value)}
+                    autoComplete="name"
+                    placeholder={t.offerName}
+                    required
+                  />
+                </label>
+                <label>
+                  {t.offerPhone}
+                  <input
+                    type="tel"
+                    value={offerPhone}
+                    onChange={(event) => setOfferPhone(event.target.value)}
+                    autoComplete="tel"
+                    placeholder="e.g. 082 123 4567"
+                    required
+                  />
+                </label>
+              </div>
+              <div className="offerDivider" />
+              <span className="offerFormEyebrow">02&nbsp; / &nbsp;{t.offerStepStyle}</span>
+              <label>
+                {t.offerDescription}
+                <textarea
+                  value={offerDescription}
+                  onChange={(event) => setOfferDescription(event.target.value)}
+                  rows="3"
+                  maxLength="500"
+                  placeholder={t.offerDescription}
+                  required
+                />
+              </label>
+              <label className="offerUploadLabel">{t.offerPhoto}
+                <span className="offerUpload">
+                  <span className="offerUploadIcon"><ImagePlus size={21} /></span>
+                  <span><strong>{offerImageName || t.choosePhoto}</strong><small>{t.offerPhotoHelp}</small></span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleOfferPhoto}
+                    required={!offerImage}
+                    aria-label={t.offerPhoto}
+                  />
+                </span>
+              </label>
+              {offerImage && (
+                <div className="offerPreview">
+                  <img src={offerImage} alt="Your inspiration for the requested style" />
+                  <span>{offerImageName}</span>
+                </div>
+              )}
+              <div className="offerDivider" />
+              <span className="offerFormEyebrow">03&nbsp; / &nbsp;{t.offerStepPrice}</span>
+              <label>
+                {t.offerPrice}
+                <span className="offerPriceInput">
+                  <span>R</span>
+                  <input
+                    type="number"
+                    min="1"
+                    step="1"
+                    value={offerPrice}
+                    onChange={(event) => setOfferPrice(event.target.value)}
+                    placeholder="0"
+                    required
+                  />
+                </span>
+                <small className="offerFieldHint">{t.offerPriceHelp}</small>
+              </label>
+              <p className="fineprint">{t.offerNote}</p>
+              <button className="btn primary full" type="submit">
+                {t.submitOffer} <ArrowRight size={18} />
+              </button>
+            </form>
+            <aside className="offerAside">
+              <div className="offerAsidePhoto">
+                <img src={portfolio[10]} alt="A finished hairstyle created at SHEZZ" />
+                <span><Star size={14} fill="currentColor" /> {t.offerStyleBadge}</span>
+              </div>
+              <div className="offerAsideCopy">
+                <span className="kicker">A LITTLE INSPIRATION</span>
+                <h2>{t.offerAsideTitle}</h2>
+                <p>{t.offerAsideText}</p>
+                <ol>
+                  <li><span>1</span>{t.offerAsideStep1}</li>
+                  <li><span>2</span>{t.offerAsideStep2}</li>
+                  <li><span>3</span>{t.offerAsideStep3}</li>
+                </ol>
+              </div>
+            </aside>
+          </div>
+          <section className="offerHistory">
+            <div className="offerHistoryHeading">
+              <div><span className="kicker">{t.offersTag}</span><h2>{t.myOffers}</h2></div>
+              <p>{t.offerDecisionNote}</p>
+            </div>
+            {customerOffers.length ? (
+              customerOffers.slice().reverse().map((offer) => (
+                <article className="offerCard" key={offer.id}>
+                  <img src={offer.image} alt="Customer inspiration" />
+                  <div className="offerCardBody">
+                    <strong>{money(offer.price)}</strong>
+                    <p>{offer.description}</p>
+                    <small>{new Date(offer.createdAt).toLocaleString(({ en: "en-ZA", xh: "xh-ZA", zu: "zu-ZA", af: "af-ZA", st: "st-ZA" })[language] || "en-ZA")}</small>
+                    <span className={"status " + offer.status.toLowerCase()}>
+                      {offer.status === "Pending" ? t.pending : offer.status === "Accepted" ? t.accepted : t.declined}
+                    </span>
+                  </div>
+                </article>
+              ))
+            ) : (
+              <p className="empty">{t.noOffers}</p>
+            )}
+          </section>
         </main>
       )}
       {page === "home" && (
@@ -821,7 +1316,6 @@ function App() {
                   key={s.id}
                   s={s}
                   onClick={() => {
-                    setChosen(s.id);
                     go("book");
                   }}
                 />
@@ -914,7 +1408,6 @@ function App() {
                 key={s.id}
                 s={s}
                 onClick={() => {
-                  setChosen(s.id);
                   go("book");
                 }}
               />
@@ -929,18 +1422,75 @@ function App() {
       {page === "book" && (
         <main className="container section">
           <PageHead
-            tag="YOUR BEAUTY APPOINTMENT"
-            title={
-              <>
-                Book your <em>moment.</em>
-              </>
-            }
-            subtitle="A few quick steps and you're on your way to your next favourite look."
+            tag={t.bookingTag}
+            title={t.bookTitle}
+            subtitle={t.bookingIntro}
           />
+          {!activeConsent ? (
+            <section className="consentPanel" aria-labelledby="consent-title">
+              <div className="consentIcon"><ShieldCheck size={30} /></div>
+              <h2 id="consent-title">{t.consentTitle}</h2>
+              <p className="muted">{t.consentIntro}</p>
+              <div className="consentForm">
+                <h3>{t.consentHeading}</h3>
+                <label>
+                  {t.consentName}
+                  <input
+                    value={customer}
+                    onChange={(event) => setCustomer(event.target.value)}
+                    autoComplete="name"
+                    required
+                  />
+                </label>
+                <label>
+                  {t.consentPhone}
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={(event) => setPhone(event.target.value)}
+                    autoComplete="tel"
+                    required
+                  />
+                </label>
+                <label>
+                  {t.consentEmail}
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    autoComplete="email"
+                  />
+                </label>
+                <div className="consentStatement">{t.consentText}</div>
+                <label className="consentCheck">
+                  <input
+                    type="checkbox"
+                    checked={consentChecked}
+                    onChange={(event) => setConsentChecked(event.target.checked)}
+                  />
+                  <span>{t.consentText}</span>
+                </label>
+                <label className="consentCheck">
+                  <input
+                    type="checkbox"
+                    checked={privacyChecked}
+                    onChange={(event) => setPrivacyChecked(event.target.checked)}
+                  />
+                  <span>{t.privacyText}</span>
+                </label>
+                <p className="fineprint">
+                  {t.consentNote}
+                </p>
+                <button className="btn primary full" onClick={recordConsent}>
+                  {t.consentButton} <ArrowRight size={18} />
+                </button>
+              </div>
+            </section>
+          ) : (
           <div className="bookingLayout">
             <div className="formCard">
               <h3>
-                <span className="step">01</span> Choose your service
+                <span className="step">01</span> {t.chooseTreatment}
               </h3>
               <div className="serviceSelect">
                 {services.map((s) => (
@@ -961,7 +1511,7 @@ function App() {
                 ))}
               </div>
               <h3>
-                <span className="step">02</span> Select a stylist
+                <span className="step">02</span> {t.chooseStylist}
               </h3>
               <div className="stylistGrid">
                 {stylists.map((s) => (
@@ -980,9 +1530,9 @@ function App() {
                 ))}
               </div>
               <h3>
-                <span className="step">03</span> Date & available time
+                <span className="step">03</span> {t.dateTime}
               </h3>
-              <label className="fieldLabel">Appointment date</label>
+              <label className="fieldLabel">{t.appointmentDate}</label>
               <input
                 type="date"
                 min={dateISO(new Date())}
@@ -992,7 +1542,7 @@ function App() {
                   setTime("");
                 }}
               />
-              <p className="fieldLabel">Available time slots</p>
+              <p className="fieldLabel">{t.availableSlots}</p>
               <div className="slots">
                 {available.length ? (
                   available.map((t) => (
@@ -1006,17 +1556,16 @@ function App() {
                   ))
                 ) : (
                   <p className="muted">
-                    No available slots on this date for this stylist. Try
-                    another day.
+                    {t.noSlots}
                   </p>
                 )}
               </div>
               <h3>
-                <span className="step">04</span> Your details
+                <span className="step">04</span> {t.yourDetails}
               </h3>
               <div className="twoFields">
                 <label>
-                  Full name *
+                  {t.fullName} *
                   <input
                     value={customer}
                     onChange={(e) => setCustomer(e.target.value)}
@@ -1024,7 +1573,7 @@ function App() {
                   />
                 </label>
                 <label>
-                  Phone number *
+                  {t.offerPhone} *
                   <input
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
@@ -1033,7 +1582,7 @@ function App() {
                 </label>
               </div>
               <label>
-                Email (optional)
+                {t.email}
                 <input
                   type="email"
                   value={email}
@@ -1042,11 +1591,11 @@ function App() {
                 />
               </label>
               <h3>
-                <span className="step">05</span> Payment preference
+                <span className="step">05</span> {t.paymentPreference}
               </h3>
               <div className="paymentChoices">
                 <button
-                  className={payment === "Pay at salon" ? "chosen" : ""}
+                  className={payment === "                  {t.payAtSalon}" ? "chosen" : ""}
                   onClick={() => setPayment("Pay at salon")}
                 >
                   <Wallet /> Pay at salon
@@ -1057,21 +1606,20 @@ function App() {
                   }
                   onClick={() => setPayment("Online payment requested")}
                 >
-                  <LockKeyhole /> Request online payment
+                  <LockKeyhole /> {t.onlinePayment}
                 </button>
               </div>
               <p className="fineprint">
-                Online payment is not yet connected to a payment gateway. No
-                card details will be collected or charged.
+                {t.onlinePaymentNote}
               </p>
               <button className="btn primary full" onClick={book}>
-                Request Booking <ArrowRight size={18} />
+                {t.requestBooking} <ArrowRight size={18} />
               </button>
             </div>
             <aside className="summary">
               <img src={service.img} />
               <div className="summaryInner">
-                <span className="kicker">YOUR APPOINTMENT</span>
+                <span className="kicker">{t.yourAppointment}</span>
                 <h3>{service.name}</h3>
                 <p>{service.desc}</p>
                 <div className="summaryLine">
@@ -1081,18 +1629,19 @@ function App() {
                   <CalendarDays size={17} /> {fmt(date)}
                 </div>
                 <div className="summaryLine">
-                  <Clock3 size={17} /> {time || "Select a time"} ·{" "}
+                  <Clock3 size={17} /> {time || t.selectTime} ·{" "}
                   {service.duration} min
                 </div>
                 <hr />
                 <div className="total">
-                  <span>Starting from</span>
+                  <span>{t.startingFrom}</span>
                   <strong>{money(service.price)}</strong>
                 </div>
-                <small>Booking requests require salon confirmation.</small>
+                <small>{t.bookingConfirmation}</small>
               </div>
             </aside>
           </div>
+          )}
         </main>
       )}
       {page === "appointments" && (
@@ -1318,6 +1867,19 @@ function App() {
                             <small>
                               {fmt(b.date)} {b.time} · {b.payment}
                             </small>
+                            {(() => {
+                              const consent = consents.find((item) => item.id === b.consentId);
+                              return consent ? (
+                                <details className="consentRecord">
+                                  <summary>
+                                    {t.consentRecord} · {consent.language.toUpperCase()} ·{" "}
+                                    {new Date(consent.recordedAt).toLocaleString()}
+                                  </summary>
+                                  <p>{consent.consentText}</p>
+                                  <p>{consent.privacyText}</p>
+                                </details>
+                              ) : null;
+                            })()}
                             <span
                               className={"status " + b.status.toLowerCase()}
                             >
@@ -1352,6 +1914,39 @@ function App() {
                       ))
                   ) : (
                     <p className="muted">No bookings yet.</p>
+                  )}
+                </div>
+                <div className="formCard">
+                  <h3>{t.reviewOffers}</h3>
+                  {offers.length ? (
+                    offers.slice().reverse().map((offer) => (
+                      <article className="adminOffer" key={offer.id}>
+                        <img src={offer.image} alt="Customer style inspiration" />
+                        <div className="adminOfferDetails">
+                          <strong>{offer.name} · {money(offer.price)}</strong>
+                          <small>{offer.phone}</small>
+                          <p>{offer.description}</p>
+                          <span className={"status " + offer.status.toLowerCase()}>
+                            {offer.status === "Pending" ? t.pending : offer.status === "Accepted" ? t.accepted : t.declined}
+                          </span>
+                          {offer.status === "Pending" && (
+                            <div className="adminActions adminOfferActions">
+                              <button onClick={() => updateOffer(offer.id, "Accepted")}>
+                                {t.accept}
+                              </button>
+                              <button
+                                className="danger"
+                                onClick={() => updateOffer(offer.id, "Declined")}
+                              >
+                                {t.decline}
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </article>
+                    ))
+                  ) : (
+                    <p className="muted">{t.noCustomerOffers}</p>
                   )}
                 </div>
                 <div className="formCard">

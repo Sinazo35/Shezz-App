@@ -393,24 +393,6 @@ header {
   margin-top: 5px;
 }
 
-.accountModeSwitch {
-  margin: 8px 0 0;
-  color: #707b74;
-  font-size: 12px;
-  text-align: center;
-}
-
-.accountModeSwitch button {
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: #b45e67;
-  font-size: inherit;
-  font-weight: 700;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
 @media (max-width: 700px) {
   .loginLayout {
     grid-template-columns: 1fr;
