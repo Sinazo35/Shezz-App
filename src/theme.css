@@ -83,33 +83,6 @@ header {
   box-shadow: 0 14px 35px #29363330;
 }
 
-.heroBadge {
-  position: absolute;
-  top: 45px;
-  left: -24px;
-  z-index: 3;
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 11px 15px;
-  background: #38665b;
-  color: white;
-  border-radius: 4px;
-  box-shadow: 0 10px 26px #29473f30;
-}
-
-.heroBadge strong {
-  font-family: "Playfair Display", serif;
-  font-size: 25px;
-  line-height: 1;
-}
-
-.heroBadge span {
-  max-width: 72px;
-  font-size: 10px;
-  line-height: 1.35;
-}
-
 .floatCard {
   left: -40px;
   border: 1px solid #f0e3df;
@@ -283,11 +256,6 @@ header {
     border-width: 4px;
   }
 
-  .heroBadge {
-    left: -8px;
-    top: 32px;
-  }
-
   .floatCard {
     left: -12px;
   }
@@ -307,5 +275,140 @@ header {
 
   .welcomeImagePair {
     height: 250px;
+  }
+}
+
+.loginPage {
+  background: #fffdfa;
+}
+
+.loginLayout {
+  width: min(100%, 1010px);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 0.9fr;
+  align-items: center;
+  gap: 64px;
+}
+
+.loginWelcome h1 {
+  max-width: 440px;
+  margin: 17px 0;
+  color: #29473f;
+  font-size: 48px;
+  line-height: 1.12;
+}
+
+.loginWelcome p {
+  max-width: 440px;
+  color: #65716a;
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+.loginWelcome img {
+  display: block;
+  width: 100%;
+  height: 275px;
+  margin-top: 27px;
+  border-radius: 8px;
+  object-position: center 35%;
+}
+
+.loginPanel {
+  padding: 34px;
+  border: 1px solid #eadfd9;
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 12px 35px #41332b0d;
+}
+
+.loginPanel h2 {
+  margin-bottom: 8px;
+  color: #29473f;
+  font-size: 31px;
+}
+
+.loginSubheading {
+  margin-bottom: 23px;
+  color: #707b74;
+  font-size: 13px;
+}
+
+.loginRoles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 23px;
+  border-radius: 5px;
+  background: #f7eeea;
+}
+
+.loginRoles button {
+  min-height: 42px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: #65716a;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.loginRoles button.selected {
+  background: white;
+  color: #29473f;
+  box-shadow: 0 1px 5px #29363312;
+}
+
+.loginForm {
+  display: grid;
+  gap: 13px;
+}
+
+.loginForm label {
+  display: grid;
+  gap: 8px;
+  color: #39473f;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.loginForm input {
+  width: 100%;
+  min-height: 46px;
+  padding: 12px;
+  border: 1px solid #d9dfda;
+  border-radius: 4px;
+  outline-color: #38665b;
+}
+
+.loginForm > small {
+  color: #78817b;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.loginForm .btn {
+  margin-top: 5px;
+}
+
+@media (max-width: 700px) {
+  .loginLayout {
+    grid-template-columns: 1fr;
+    gap: 26px;
+  }
+
+  .loginWelcome h1 {
+    font-size: 39px;
+  }
+
+  .loginWelcome img {
+    height: 190px;
+    margin-top: 18px;
+  }
+
+  .loginPanel {
+    padding: 24px;
   }
 }

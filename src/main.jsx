@@ -137,6 +137,9 @@ function App() {
     [customer, setCustomer] = useState(""),
     [phone, setPhone] = useState(""),
     [email, setEmail] = useState(""),
+    [account, setAccount] = useState(null),
+    [loginRole, setLoginRole] = useState("customer"),
+    [loginPhone, setLoginPhone] = useState(""),
     [bookings, setBookings] = useState(() => load("shezz_bookings", [])),
     [notice, setNotice] = useState(""),
     [rewardPhone, setRewardPhone] = useState(""),
@@ -161,6 +164,37 @@ function App() {
     setMenu(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+  function signOut() {
+    setAccount(null);
+    setStaffAuth(false);
+    setStaffPin("");
+    setNotice("You have signed out.");
+    go("home");
+  }
+  function signIn(event) {
+    event.preventDefault();
+    if (loginRole === "staff") {
+      if (staffPin !== "2468") {
+        setNotice("Incorrect demo PIN.");
+        return;
+      }
+      setAccount({ role: "staff" });
+      setStaffAuth(true);
+      setNotice("Welcome to the SHEZZ staff dashboard.");
+      go("admin");
+      return;
+    }
+    if (loginPhone.replace(/\D/g, "").length < 9) {
+      setNotice("Enter the phone number used for your bookings.");
+      return;
+    }
+    const signedInPhone = loginPhone.trim();
+    setAccount({ role: "customer", phone: signedInPhone });
+    setStaffAuth(false);
+    setRewardPhone(signedInPhone);
+    setNotice("Welcome back. Your appointments are ready.");
+    go("appointments");
+  }
   const service = services.find((s) => s.id === chosen);
   const filtered =
     category === "All"
@@ -332,19 +366,35 @@ function App() {
               ["book", "Book Appointment"],
               ["appointments", "My Bookings"],
               ["rewards", "Rewards"],
-              ["admin", "Demo Staff"],
+              ...(account?.role === "staff" ? [["admin", "Dashboard"]] : []),
+              ["login", account ? "Sign out" : "Sign in"],
             ].map(([p, t]) => (
               <button
                 className={page === p ? "active" : ""}
                 key={p}
-                onClick={() => go(p)}
+                onClick={() =>
+                  p === "login" && account ? signOut() : go(p)
+                }
               >
                 {t}
               </button>
             ))}
           </nav>
-          <button className="navcta" onClick={() => go("book")}>
-            Book Now <ArrowRight size={16} />
+          <button
+            className="navcta"
+            onClick={() =>
+              account?.role === "staff"
+                ? go("admin")
+                : account?.role === "customer"
+                  ? go("appointments")
+                  : go("login")
+            }
+          >
+            {account?.role === "staff"
+              ? "Dashboard"
+              : account?.role === "customer"
+                ? "My bookings"
+                : "Sign in"} <ArrowRight size={16} />
           </button>
           <button className="hamburger" onClick={() => setMenu(!menu)}>
             {menu ? <X /> : <Menu />}
@@ -359,6 +409,93 @@ function App() {
             <X size={15} />
           </button>
         </div>
+      )}
+      {page === "login" && (
+        <main className="container section loginPage">
+          <div className="loginLayout">
+            <div className="loginWelcome">
+              <span className="kicker">YOUR SHEZZ ACCOUNT</span>
+              <h1>Good to see you <em>again.</em></h1>
+              <p>
+                Sign in to keep your appointments and your SHEZZ visits close
+                at hand.
+              </p>
+              <img
+                src={pics[1]}
+                alt="Braided style created at SHEZZ Beauty Studio"
+              />
+            </div>
+            <section className="loginPanel" aria-labelledby="login-title">
+              <h2 id="login-title">Sign in</h2>
+              <p className="loginSubheading">
+                Choose how you use SHEZZ Beauty Studio.
+              </p>
+              <div className="loginRoles" aria-label="Choose account type">
+                <button
+                  type="button"
+                  className={loginRole === "customer" ? "selected" : ""}
+                  aria-pressed={loginRole === "customer"}
+                  onClick={() => setLoginRole("customer")}
+                >
+                  Customer
+                </button>
+                <button
+                  type="button"
+                  className={loginRole === "staff" ? "selected" : ""}
+                  aria-pressed={loginRole === "staff"}
+                  onClick={() => setLoginRole("staff")}
+                >
+                  Staff
+                </button>
+              </div>
+              <form className="loginForm" onSubmit={signIn}>
+                {loginRole === "customer" ? (
+                  <>
+                    <label>
+                      Mobile number
+                      <input
+                        type="tel"
+                        autoComplete="tel"
+                        placeholder="e.g. 082 123 4567"
+                        value={loginPhone}
+                        onChange={(event) => setLoginPhone(event.target.value)}
+                        required
+                      />
+                    </label>
+                    <small>
+                      Use the same number you entered when booking. This demo
+                      looks up appointments saved in this browser.
+                    </small>
+                    <button className="btn primary full" type="submit">
+                      Continue to my bookings <ArrowRight size={17} />
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <label>
+                      Staff PIN
+                      <input
+                        type="password"
+                        autoComplete="current-password"
+                        placeholder="Enter staff PIN"
+                        value={staffPin}
+                        onChange={(event) => setStaffPin(event.target.value)}
+                        required
+                      />
+                    </label>
+                    <small>
+                      Demo staff access uses PIN 2468. This is not secure
+                      production authentication.
+                    </small>
+                    <button className="btn primary full" type="submit">
+                      Sign in to dashboard <ArrowRight size={17} />
+                    </button>
+                  </>
+                )}
+              </form>
+            </section>
+          </div>
+        </main>
       )}
       {page === "home" && (
         <>
@@ -402,10 +539,6 @@ function App() {
                   src={portfolio[14]}
                   alt="Sleek ponytail finished at SHEZZ"
                 />
-                <div className="heroBadge">
-                  <strong>24</strong>
-                  <span>looks to fall for</span>
-                </div>
                 <div className="floatCard">
                   <div className="circleIcon">
                     <Star size={19} fill="currentColor" />
@@ -795,7 +928,16 @@ function App() {
               ))
           ) : (
             <div className="empty">
-              Enter your phone number to find your appointments.
+              {account?.role === "customer" ? (
+                <>
+                  <p>No appointments found for this number yet.</p>
+                  <button className="textlink" onClick={() => go("book")}>
+                    Book your first appointment <ArrowRight size={17} />
+                  </button>
+                </>
+              ) : (
+                "Enter your phone number to find your appointments."
+              )}
             </div>
           )}
         </main>
@@ -906,29 +1048,17 @@ function App() {
           {!staffAuth ? (
             <div className="formCard narrow adminLogin">
               <LockKeyhole size={36} />
-              <h3>Staff sign-in</h3>
-              <p>
-                Enter the demo staff PIN to access bookings and reward
-                redemption.
-              </p>
-              <input
-                type="password"
-                placeholder="Staff PIN"
-                value={staffPin}
-                onChange={(e) => setStaffPin(e.target.value)}
-              />
+              <h3>Staff access required</h3>
+              <p>Sign in with your staff PIN to manage appointments.</p>
               <button
                 className="btn primary full"
                 onClick={() => {
-                  if (staffPin === "2468") {
-                    setStaffAuth(true);
-                    setNotice("Demo staff access enabled.");
-                  } else setNotice("Incorrect demo PIN.");
+                  setLoginRole("staff");
+                  go("login");
                 }}
               >
-                Unlock Dashboard
+                Continue to staff sign-in <ArrowRight size={17} />
               </button>
-              <small>Demo PIN: 2468. This is not secure authentication.</small>
             </div>
           ) : (
             <>
@@ -1040,9 +1170,9 @@ function App() {
                   </p>
                   <button
                     className="textlink"
-                    onClick={() => setStaffAuth(false)}
+                    onClick={signOut}
                   >
-                    Lock dashboard
+                    Sign out
                   </button>
                 </div>
               </div>
