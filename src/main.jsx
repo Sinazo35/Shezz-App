@@ -139,6 +139,7 @@ function App() {
     [email, setEmail] = useState(""),
     [account, setAccount] = useState(null),
     [loginRole, setLoginRole] = useState("customer"),
+    [loginEmail, setLoginEmail] = useState(""),
     [loginPhone, setLoginPhone] = useState(""),
     [bookings, setBookings] = useState(() => load("shezz_bookings", [])),
     [notice, setNotice] = useState(""),
@@ -189,7 +190,11 @@ function App() {
       return;
     }
     const signedInPhone = loginPhone.trim();
-    setAccount({ role: "customer", phone: signedInPhone });
+    setAccount({
+      role: "customer",
+      email: loginEmail.trim(),
+      phone: signedInPhone,
+    });
     setStaffAuth(false);
     setRewardPhone(signedInPhone);
     setNotice("Welcome back. Your appointments are ready.");
@@ -452,6 +457,17 @@ function App() {
                 {loginRole === "customer" ? (
                   <>
                     <label>
+                      Email address
+                      <input
+                        type="email"
+                        autoComplete="email"
+                        placeholder="you@example.com"
+                        value={loginEmail}
+                        onChange={(event) => setLoginEmail(event.target.value)}
+                        required
+                      />
+                    </label>
+                    <label>
                       Mobile number
                       <input
                         type="tel"
@@ -463,8 +479,9 @@ function App() {
                       />
                     </label>
                     <small>
-                      Use the same number you entered when booking. This demo
-                      looks up appointments saved in this browser.
+                      Enter your email and the phone number used when booking.
+                      This demo finds appointments saved in this browser by
+                      phone number.
                     </small>
                     <button className="btn primary full" type="submit">
                       Continue to my bookings <ArrowRight size={17} />
