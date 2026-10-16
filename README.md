@@ -11,7 +11,7 @@ npm install
 npm run dev
 ```
 
-Vite opens the development app (normally http://localhost:5173). **For the chatbot endpoint, use the production server**:
+The app is configured to run on port 3000 locally, so use http://localhost:3000 for the live app. **For the chatbot endpoint, use the production server**:
 
 ```sh
 npm run build
