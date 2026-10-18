@@ -25,6 +25,7 @@ import {
   Plus,
   Minus,
   ImagePlus,
+  Download,
 } from "lucide-react";
 import "./style.css";
 import "./theme.css";
@@ -509,6 +510,8 @@ const dateISO = (d) => {
 function App() {
   const [chatOpen, setChatOpen] = useState(false),
     [chatInput, setChatInput] = useState(""),
+    [chatLanguage, setChatLanguage] = useState("auto"),
+    [chatAiEnabled, setChatAiEnabled] = useState(false),
     [chatBusy, setChatBusy] = useState(false),
     [chatMessages, setChatMessages] = useState([
       {
@@ -517,7 +520,7 @@ function App() {
           "Hi, welcome to SHEZZ. Tell me what look you have in mind, or ask about services, bookings, and rewards.",
       },
     ]),
-    [page, setPage] = useState("home"),
+    [page, setPage] = useState("login"),
     [menu, setMenu] = useState(false),
     [category, setCategory] = useState("All"),
     [chosen, setChosen] = useState(services[0].id),
@@ -555,7 +558,9 @@ function App() {
     [privacyChecked, setPrivacyChecked] = useState(false),
     [rewardCode, setRewardCode] = useState(""),
     [payment, setPayment] = useState("Pay at salon"),
-    [rewardDiscount, setRewardDiscount] = useState(10);
+    [rewardDiscount, setRewardDiscount] = useState(10),
+    [installPrompt, setInstallPrompt] = useState(null),
+    [appInstalled, setAppInstalled] = useState(false);
   useEffect(
     () => localStorage.setItem("shezz_bookings", JSON.stringify(bookings)),
     [bookings],
@@ -572,13 +577,52 @@ function App() {
     () => localStorage.setItem("shezz_language", JSON.stringify(language)),
     [language],
   );
+  useEffect(() => {
+    const standalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      navigator.standalone === true;
+    setAppInstalled(standalone);
+    const captureInstallPrompt = (event) => {
+      event.preventDefault();
+      setInstallPrompt(event);
+    };
+    const markInstalled = () => {
+      setAppInstalled(true);
+      setInstallPrompt(null);
+    };
+    window.addEventListener("beforeinstallprompt", captureInstallPrompt);
+    window.addEventListener("appinstalled", markInstalled);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", captureInstallPrompt);
+      window.removeEventListener("appinstalled", markInstalled);
+    };
+  }, []);
+  useEffect(() => {
+    let active = true;
+    fetch("/api/health")
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data) => {
+        if (active) setChatAiEnabled(Boolean(data?.ai));
+      })
+      .catch(() => {
+        if (active) setChatAiEnabled(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
   const t = translations[language] || translations.en;
   useEffect(() => {
     if (!notice) return;
     let t = setTimeout(() => setNotice(""), 5500);
     return () => clearTimeout(t);
   }, [notice]);
-  const go = (p) => {
+  const go = (p, justSignedIn = false) => {
+    if (!account && p !== "login" && !justSignedIn) {
+      setPage("login");
+      setMenu(false);
+      return;
+    }
     if (p === "book") {
       setActiveConsent(null);
       setConsentChecked(false);
@@ -592,8 +636,23 @@ function App() {
     setAccount(null);
     setStaffAuth(false);
     setStaffPin("");
+    setChatOpen(false);
     setNotice("You have signed out.");
-    go("home");
+    setPage("login");
+  }
+  async function installApp() {
+    if (installPrompt) {
+      await installPrompt.prompt();
+      await installPrompt.userChoice;
+      setInstallPrompt(null);
+      return;
+    }
+    const isAppleMobile = /iPhone|iPad|iPod/.test(navigator.userAgent);
+    setNotice(
+      isAppleMobile
+        ? "To install SHEZZ, tap Share, then choose Add to Home Screen."
+        : "Open your browser menu and choose Install app or Add to Home screen.",
+    );
   }
   function signIn(event) {
     event.preventDefault();
@@ -605,7 +664,7 @@ function App() {
       setAccount({ role: "staff" });
       setStaffAuth(true);
       setNotice("Welcome to the SHEZZ staff dashboard.");
-      go("admin");
+      go("admin", true);
       return;
     }
     if (loginPhone.replace(/\D/g, "").length < 9) {
@@ -621,7 +680,7 @@ function App() {
     setStaffAuth(false);
     setRewardPhone(signedInPhone);
     setNotice("Welcome back. Your appointments are ready.");
-    go("appointments");
+    go("appointments", true);
   }
   const service = services.find((s) => s.id === chosen);
   const filtered =
@@ -665,17 +724,42 @@ function App() {
       offer.phone.replace(/\D/g, "") === offerPhone.replace(/\D/g, "") &&
       offerPhone.replace(/\D/g, "").length >= 9,
   );
-  async function sendChat() {
-    const question = chatInput.trim();
+  async function sendChat(suggestedQuestion = "") {
+    const question = (suggestedQuestion || chatInput).trim();
     if (!question || chatBusy) return;
     setChatInput("");
     setChatMessages((v) => [...v, { role: "user", content: question }]);
+    if (
+      !chatAiEnabled &&
+      !["auto", "en", "xh", "zu", "af", "st"].includes(chatLanguage)
+    ) {
+      setChatMessages((v) => [
+        ...v,
+        {
+          role: "assistant",
+          content:
+            "Replies in this language need server AI, which is not configured yet. Please choose English, isiXhosa, isiZulu, Afrikaans or Sesotho for now.",
+        },
+      ]);
+      return;
+    }
     setChatBusy(true);
     try {
       const r = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: question }),
+        body: JSON.stringify({
+          message:
+            chatLanguage === "auto"
+              ? question
+              : `${question}\n[Reply language: ${chatLanguage}]`,
+          services: services.map(({ name, price, duration, desc }) => ({
+            name,
+            price,
+            duration,
+            description: desc,
+          })),
+        }),
       });
       const data = await r.json();
       setChatMessages((v) => [
@@ -895,7 +979,18 @@ function App() {
           <button className="brand" onClick={() => go("home")}>
             SHEZZ<span>BEAUTY STUDIO</span>
           </button>
-          <nav className={menu ? "open" : ""}>
+          {!appInstalled && (
+            <button
+              className="installButton"
+              onClick={installApp}
+              aria-label={installPrompt ? "Install SHEZZ app" : "Add SHEZZ to phone"}
+              title={installPrompt ? "Install SHEZZ app" : "Add SHEZZ to phone"}
+            >
+              <Download size={16} />
+              <span>{installPrompt ? "Install app" : "Add to phone"}</span>
+            </button>
+          )}
+          {account && <nav className={menu ? "open" : ""}>
             {[
               ["home", t.home],
               ["services", t.services],
@@ -916,8 +1011,8 @@ function App() {
                 {t}
               </button>
             ))}
-          </nav>
-          <button
+          </nav>}
+          {account && <button
             className="navcta"
             onClick={() =>
               account?.role === "staff"
@@ -932,7 +1027,7 @@ function App() {
               : account?.role === "customer"
                 ? "My bookings"
                 : "Sign in"} <ArrowRight size={16} />
-          </button>
+          </button>}
           <label className="languagePicker">
             <span className="srOnly">Language</span>
             <select
@@ -953,9 +1048,9 @@ function App() {
               <option value="st">Sesotho</option>
             </select>
           </label>
-          <button className="hamburger" onClick={() => setMenu(!menu)}>
+          {account && <button className="hamburger" onClick={() => setMenu(!menu)}>
             {menu ? <X /> : <Menu />}
-          </button>
+          </button>}
         </div>
       </header>
       {notice && (
@@ -2037,24 +2132,69 @@ function App() {
            </span>
         </div>
       </footer>
-      <button
+      {account && <button
         className="chatLauncher"
         onClick={() => setChatOpen((v) => !v)}
         aria-label="Open SHEZZ chat"
       >
         <MessageCircle size={24} />
-      </button>
-      {chatOpen && (
+      </button>}
+      {account && chatOpen && (
         <div className="chatPanel">
           <div className="chatHeader">
             <div>
               <strong>SHEZZ Beauty Assistant</strong>
-              <small>Ask about services, appointments & rewards</small>
+              <small>{chatAiEnabled ? "AI support · services, bookings & salon information" : "FAQ support · services, bookings & salon information"}</small>
             </div>
             <button onClick={() => setChatOpen(false)} aria-label="Close chat">
               <X size={20} />
             </button>
           </div>
+          <div className="chatControls">
+            <label htmlFor="chat-language">Reply language</label>
+            <select
+              id="chat-language"
+              value={chatLanguage}
+              onChange={(event) => setChatLanguage(event.target.value)}
+            >
+              <option value="auto">Match my question</option>
+              <option value="en">English</option>
+              <option value="xh">isiXhosa</option>
+              <option value="zu">isiZulu</option>
+              <option value="af">Afrikaans</option>
+              <option value="st">Sesotho</option>
+              <option value="nr">isiNdebele</option>
+              <option value="nso">Sepedi</option>
+              <option value="tn">Setswana</option>
+              <option value="ss">siSwati</option>
+              <option value="ve">Tshivenda</option>
+              <option value="ts">itsonga</option>
+            </select>
+          </div>
+          {!chatAiEnabled && (
+            <small className="chatLanguageNote">
+              More languages become available when server AI is configured.
+            </small>
+          )}
+          {chatMessages.length === 1 && (
+            <div className="chatSuggestions" aria-label="Suggested questions">
+              {[
+                "What services and prices do you offer?",
+                "Are appointments available on Saturday?",
+                "Do I need to bring my own extensions?",
+                "Where is the salon located?",
+              ].map((question) => (
+                <button
+                  key={question}
+                  type="button"
+                  disabled={chatBusy}
+                  onClick={() => sendChat(question)}
+                >
+                  {question}
+                </button>
+              ))}
+            </div>
+          )}
           <div className="chatMessages">
             {chatMessages.map((m, i) => (
               <div key={i} className={"chatBubble " + m.role}>
@@ -2084,9 +2224,18 @@ function App() {
               <Send size={19} />
             </button>
           </form>
+          <button
+            className="chatBookButton"
+            type="button"
+            onClick={() => {
+              setChatOpen(false);
+              go("book");
+            }}
+          >
+            <CalendarDays size={16} /> Book an appointment
+          </button>
           <small className="chatNote">
-            AI replies may be inaccurate. Confirm prices and availability with
-            the salon.
+            Prices and availability may change. The salon confirms bookings.
           </small>
         </div>
       )}
