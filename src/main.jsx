@@ -652,6 +652,10 @@ function App() {
     setNotice("You have signed out.");
     setPage("login");
   }
+  function scrollToAdminTask(id) {
+    setMenu(false);
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
   async function installApp() {
     if (installPrompt) {
       await installPrompt.prompt();
@@ -1070,42 +1074,50 @@ function App() {
             </button>
           )}
           {account && <nav className={menu ? "open" : ""}>
-            {[
-              ["home", t.home],
-              ["services", t.services],
-              ["book", t.book],
-              ["appointments", t.appointments],
-              ["offers", t.offers],
-              ["rewards", t.rewards],
-              ...(account?.role === "staff" ? [["admin", "Dashboard"]] : []),
-              ["login", account ? "Sign out" : "Sign in"],
-            ].map(([p, t]) => (
-              <button
-                className={page === p ? "active" : ""}
-                key={p}
-                onClick={() =>
-                  p === "login" && account ? signOut() : go(p)
-                }
-              >
-                {t}
-              </button>
-            ))}
+            {account.role === "staff" ? (
+              page === "admin" ? (
+                <>
+                  <button onClick={() => scrollToAdminTask("admin-appointments")}>Appointments</button>
+                  <button onClick={() => scrollToAdminTask("admin-offers")}>Review offers</button>
+                  <button onClick={() => scrollToAdminTask("admin-rewards")}>Redeem rewards</button>
+                  <button onClick={signOut}>Sign out</button>
+                </>
+              ) : (
+                <>
+                  <button onClick={signOut}>Sign out</button>
+                </>
+              )
+            ) : (
+              [
+                ["home", t.home],
+                ["services", t.services],
+                ["book", t.book],
+                ["appointments", t.appointments],
+                ["offers", t.offers],
+                ["rewards", t.rewards],
+                ["login", "Sign out"],
+              ].map(([p, label]) => (
+                <button
+                  className={page === p ? "active" : ""}
+                  key={p}
+                  onClick={() => p === "login" ? signOut() : go(p)}
+                >
+                  {label}
+                </button>
+              ))
+            )}
           </nav>}
-          {account && <button
+          {account && account.role === "staff" && page !== "admin" && <button
             className="navcta"
-            onClick={() =>
-              account?.role === "staff"
-                ? go("admin")
-                : account?.role === "customer"
-                  ? go("appointments")
-                  : go("login")
-            }
+            onClick={() => go("admin")}
           >
-            {account?.role === "staff"
-              ? "Dashboard"
-              : account?.role === "customer"
-                ? "My bookings"
-                : "Sign in"} <ArrowRight size={16} />
+            Dashboard <ArrowRight size={16} />
+          </button>}
+          {account && account.role === "customer" && <button
+            className="navcta"
+            onClick={() => go("appointments")}
+          >
+            My bookings <ArrowRight size={16} />
           </button>}
           <label className="languagePicker">
             <span className="srOnly">Language</span>
@@ -2115,7 +2127,7 @@ function App() {
                 </div>
               </section>
               <div className="adminGrid">
-                <div className="formCard">
+                <div className="formCard" id="admin-appointments">
                   <h3>Manage appointments</h3>
                   {bookings.length ? (
                     bookings
@@ -2180,7 +2192,7 @@ function App() {
                     <p className="muted">No bookings yet.</p>
                   )}
                 </div>
-                <div className="formCard">
+                <div className="formCard" id="admin-offers">
                   <h3>{t.reviewOffers}</h3>
                   {offers.length ? (
                     offers.slice().reverse().map((offer) => (
@@ -2213,7 +2225,7 @@ function App() {
                     <p className="muted">{t.noCustomerOffers}</p>
                   )}
                 </div>
-                <div className="formCard">
+                <div className="formCard" id="admin-rewards">
                   <h3>
                     <ShieldCheck size={22} /> Redeem a reward
                   </h3>
@@ -2244,12 +2256,6 @@ function App() {
                     The demo validates typed QR payloads. Camera scanning and
                     server-side single-use validation are production upgrades.
                   </p>
-                  <button
-                    className="textlink"
-                    onClick={signOut}
-                  >
-                    Sign out
-                  </button>
                 </div>
               </div>
             </>
