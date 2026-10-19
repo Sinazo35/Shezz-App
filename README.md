@@ -4,21 +4,21 @@ Royal-blue and white React/Vite app with **all 6 original photos plus 18 photos 
 
 ## Run locally
 
-Install Node.js 20+ and run:
+Install Node.js 22+ and run:
 
 ```sh
 npm install
 npm run dev
 ```
 
-The app is configured to run on port 3000 locally, so use http://localhost:3000 for the live app. **For the chatbot endpoint, use the production server**:
+The app is configured to run on port 3000 locally. The Vite development server serves the UI; use the production server below to test the chatbot endpoint:
 
 ```sh
 npm run build
 npm start
 ```
 
-Then open http://localhost:3000. Without an API key, the chatbot answers from a built-in salon FAQ. To enable actual AI-generated responses, set `OPENAI_API_KEY` **on the server** (not in React or in the browser). The server uses the OpenAI Responses API and falls back to FAQ answers if the API is unavailable. Chatbot conversations are sent to the configured AI provider when enabled. Add appropriate consent and privacy notices before collecting customer information.
+Then open http://localhost:3000. The chatbot has local FAQ replies in English, isiXhosa, isiZulu, Afrikaans and Sesotho. To enable AI-generated answers and the additional spoken South African languages (isiNdebele, Sepedi, Setswana, siSwati, Tshivenda and Xitsonga), set `OPENAI_API_KEY` **on the server** (not in React or in the browser). The server uses the OpenAI Responses API and falls back to local FAQs if the AI request fails. When AI is enabled, customer messages are sent to the configured AI provider. Do not ask customers to enter sensitive payment or identity information in chat; add appropriate privacy notices before launch.
 
 ## Deploy on Render
 
@@ -26,18 +26,19 @@ Then open http://localhost:3000. Without an API key, the chatbot answers from a 
 2. In Render, create a new **Web Service** from the repository or use the included `render.yaml` Blueprint.
 3. Build command: `npm install && npm run build`; start command: `npm start`.
 4. Optionally add `OPENAI_API_KEY` to Render environment variables. **Never commit the key.**
-5. Open the HTTPS URL supplied by Render. In supported browsers, choose **Install app / Add to Home Screen**. iPhone Safari: Share > Add to Home Screen.
+5. Open the HTTPS URL supplied by Render and tap **Add to phone** in the app header. Supported browsers show their install prompt; on iPhone, tap **Share > Add to Home Screen** when instructed.
 
 The manifest, service worker, app icons and standalone display mode are included. Installation requires HTTPS (or localhost) and depends on browser support. Offline support is limited to previously visited pages/assets; appointments and chat require connectivity.
 
 ## Features and IMPORTANT limitations
 
 - Responsive royal-blue and white layout; 24 supplied photos, including 18 new portfolio images.
+- Sign-in is required before app sections and chatbot access. Customer email/phone and the staff demo PIN are checked in the browser only; they do not provide secure or verified authentication.
 - Customers can send the salon a hairstyle inspiration photo, description, and price offer; staff can accept or decline offers from the dashboard.
 - Digital consultation and data-use consent is required and recorded before treatment selection, including consent wording, language, and timestamp. Customers can use English, isiXhosa, or Afrikaans in the booking, consent, and offer flows.
 - Salon address shown as **Delft South, Cape Town, 7100**. Exact street address and phone number were not provided.
 - Services, stylist names, prices, durations, and working days are **examples** and need salon confirmation.
-- Chat assistant: real server-side AI when configured; otherwise FAQ fallback.
+- Chat assistant: service-price and duration answers from the displayed catalog, booking guidance, Saturday schedule information, location, extension preparation, payment and rewards FAQs; quick question suggestions; a direct booking shortcut; and language-matched replies. Knotless braids and silk presses are not in the current catalog, so the assistant directs customers to the salon rather than inventing details.
 - Bookings, staff demo PIN `2468`, reward progress, QR codes, and redemption currently use **browser localStorage only**. They are demonstrations, **not secure or shared across devices**.
 - Offers, customer images, and consent records also use **browser localStorage only**. They are not shared with staff on other devices and are not suitable for storing real customer consent or photos until server-side storage, access controls, and privacy safeguards are implemented.
 - The online-payment choice is a **request only**. No payment provider is integrated; the app **cannot collect or verify real payments**.
