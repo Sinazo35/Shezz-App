@@ -506,6 +506,11 @@ const dateISO = (d) => {
     a = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${a}`;
 };
+const shiftDate = (date, days) => {
+  const shifted = new Date(date + "T12:00:00");
+  shifted.setDate(shifted.getDate() + days);
+  return dateISO(shifted);
+};
 function App() {
   const [chatOpen, setChatOpen] = useState(false),
     [chatInput, setChatInput] = useState(""),
@@ -538,6 +543,13 @@ function App() {
     [staffPin, setStaffPin] = useState(""),
     [staffMode, setStaffMode] = useState(false),
     [staffAuth, setStaffAuth] = useState(false),
+    [adminView, setAdminView] = useState("week"),
+    [adminDate, setAdminDate] = useState(dateISO(new Date())),
+    [adminStylistFilter, setAdminStylistFilter] = useState("all"),
+    [editingBooking, setEditingBooking] = useState(null),
+    [editDate, setEditDate] = useState(""),
+    [editTime, setEditTime] = useState(""),
+    [editStylist, setEditStylist] = useState(""),
     [language, setLanguage] = useState(() => {
       const savedLanguage = load("shezz_language", "en");
       return ["en", "xh", "zu", "af", "st"].includes(savedLanguage) ? savedLanguage : "en";
@@ -641,6 +653,73 @@ function App() {
     "15:00",
     "16:00",
   ];
+  const adminDates = (() => {
+    if (adminView === "day") return [adminDate];
+    if (adminView === "week") {
+      const mondayOffset = (daynum(adminDate) + 6) % 7;
+      const monday = shiftDate(adminDate, -mondayOffset);
+      return Array.from({ length: 7 }, (_, index) => shiftDate(monday, index));
+    }
+    const firstOfMonth = adminDate.slice(0, 8) + "01";
+    const mondayOffset = (daynum(firstOfMonth) + 6) % 7;
+    const firstVisibleDate = shiftDate(firstOfMonth, -mondayOffset);
+    return Array.from({ length: 42 }, (_, index) => shiftDate(firstVisibleDate, index));
+  })();
+  const adminCalendarBookings = bookings
+    .filter((booking) => adminDates.includes(booking.date))
+    .slice()
+    .sort((a, b) => a.time.localeCompare(b.time));
+  const adminStylists = adminStylistFilter === "all"
+    ? stylists
+    : stylists.filter((item) => item.id === adminStylistFilter);
+  const adminRangeLabel = adminView === "day"
+    ? fmt(adminDate)
+    : adminView === "week"
+      ? `${fmt(adminDates[0])} – ${fmt(adminDates[6])}`
+      : new Date(adminDate + "T12:00:00").toLocaleDateString("en-ZA", { month: "long", year: "numeric" });
+  function moveAdminCalendar(direction) {
+    const amount = adminView === "day" ? 1 : adminView === "week" ? 7 : 0;
+    if (amount) {
+      setAdminDate(shiftDate(adminDate, amount * direction));
+      return;
+    }
+    const next = new Date(adminDate.slice(0, 7) + "-01T12:00:00");
+    next.setMonth(next.getMonth() + direction);
+    setAdminDate(dateISO(next));
+  }
+  function startReschedule(booking) {
+    setEditingBooking(booking.id);
+    setEditDate(booking.date);
+    setEditTime(booking.time);
+    setEditStylist(booking.stylist);
+  }
+  function saveReschedule(booking) {
+    const assignedStylist = stylists.find((item) => item.id === editStylist);
+    const occupied = bookings.some((item) =>
+      item.id !== booking.id &&
+      item.status !== "Cancelled" &&
+      item.date === editDate &&
+      item.time === editTime &&
+      item.stylist === editStylist,
+    );
+    if (!editDate || !editTime || !assignedStylist?.days.includes(daynum(editDate))) {
+      setNotice("Choose a valid date, time and working stylist.");
+      return;
+    }
+    if (new Date(editDate + "T" + editTime) <= new Date()) {
+      setNotice("Choose a future appointment time.");
+      return;
+    }
+    if (occupied) {
+      setNotice("That stylist is already booked at this time.");
+      return;
+    }
+    setBookings((items) => items.map((item) => item.id === booking.id
+      ? { ...item, date: editDate, time: editTime, stylist: editStylist }
+      : item));
+    setEditingBooking(null);
+    setNotice("Appointment rescheduled and stylist updated.");
+  }
   const staff = stylists.find((s) => s.id === stylist);
   const available = staff.days.includes(daynum(date))
     ? slots.filter(
@@ -1849,13 +1928,104 @@ function App() {
                   <small>Completed visits</small>
                 </div>
               </div>
+              <section className="adminCalendarPanel" aria-label="Appointment calendar">
+                <div className="adminCalendarToolbar">
+                  <div className="adminCalendarViews" aria-label="Calendar view">
+                    {[["day", "Day"], ["week", "Week"], ["month", "Month"]].map(([view, label]) => (
+                      <button
+                        key={view}
+                        className={adminView === view ? "selected" : ""}
+                        aria-pressed={adminView === view}
+                        onClick={() => setAdminView(view)}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="adminCalendarNavigation">
+                    <button aria-label="Previous period" onClick={() => moveAdminCalendar(-1)}><ChevronLeft size={17} /></button>
+                    <strong>{adminRangeLabel}</strong>
+                    <button aria-label="Next period" onClick={() => moveAdminCalendar(1)}><ChevronRight size={17} /></button>
+                    <button className="todayButton" onClick={() => setAdminDate(dateISO(new Date()))}>Today</button>
+                  </div>
+                </div>
+                {adminView !== "day" && (
+                  <div className="adminWeekdays">
+                    {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((label) => <span key={label}>{label}</span>)}
+                  </div>
+                )}
+                <div className={`adminCalendarDays ${adminView}`}>
+                  {adminDates.map((calendarDate) => {
+                    const dayBookings = adminCalendarBookings.filter((booking) =>
+                      booking.date === calendarDate &&
+                      (adminStylistFilter === "all" || booking.stylist === adminStylistFilter),
+                    );
+                    return (
+                      <article
+                        className={`adminCalendarDay ${calendarDate === adminDate ? "focused" : ""} ${adminView === "month" && !calendarDate.startsWith(adminDate.slice(0, 7)) ? "outsideMonth" : ""}`}
+                        key={calendarDate}
+                      >
+                        <button className="calendarDateButton" onClick={() => setAdminDate(calendarDate)}>
+                          {adminView === "day" ? fmt(calendarDate) : <><span>{new Date(calendarDate + "T12:00:00").toLocaleDateString("en-ZA", { weekday: "short" })}</span><strong>{Number(calendarDate.slice(-2))}</strong></>}
+                        </button>
+                        <div className="adminCalendarEvents">
+                          {dayBookings.map((booking) => (
+                            <div className={`adminCalendarEvent ${booking.status.toLowerCase().replaceAll(" ", "-")}`} key={booking.id}>
+                              <time>{booking.time}</time>
+                              <span>{booking.name}</span>
+                              <small>{stylists.find((item) => item.id === booking.stylist)?.name || "Unassigned"}</small>
+                            </div>
+                          ))}
+                          {!dayBookings.length && <small className="calendarEmpty">No appointments</small>}
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+                <div className="availabilityHeader">
+                  <div>
+                    <h3>Slot availability</h3>
+                    <p>{fmt(adminDate)} · Available and fully booked times by stylist</p>
+                  </div>
+                  <label>
+                    Stylist
+                    <select value={adminStylistFilter} onChange={(event) => setAdminStylistFilter(event.target.value)}>
+                      <option value="all">All stylists</option>
+                      {stylists.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}
+                    </select>
+                  </label>
+                </div>
+                <div className="availabilityGrid" style={{ "--stylist-count": adminStylists.length }}>
+                  <strong className="availabilityCorner">Time</strong>
+                  {adminStylists.map((item) => <strong className="availabilityStylist" key={item.id}>{item.name}</strong>)}
+                  {slots.map((slot) => (
+                    <React.Fragment key={slot}>
+                      <strong className="availabilityTime">{slot}</strong>
+                      {adminStylists.map((item) => {
+                        const isWorking = item.days.includes(daynum(adminDate));
+                        const occupied = bookings.find((booking) =>
+                          booking.date === adminDate && booking.time === slot &&
+                          booking.stylist === item.id && booking.status !== "Cancelled",
+                        );
+                        const isPast = new Date(`${adminDate}T${slot}`) <= new Date();
+                        const state = !isWorking ? "closed" : occupied ? "booked" : isPast ? "past" : "available";
+                        return (
+                          <div className={`availabilityCell ${state}`} key={`${slot}-${item.id}`}>
+                            {state === "closed" ? "Not working" : state === "booked" ? `Fully booked · ${occupied.name}` : state === "past" ? "Past" : "Available"}
+                          </div>
+                        );
+                      })}
+                    </React.Fragment>
+                  ))}
+                </div>
+              </section>
               <div className="adminGrid">
                 <div className="formCard">
                   <h3>Manage appointments</h3>
                   {bookings.length ? (
                     bookings
                       .slice()
-                      .reverse()
+                      .sort((a, b) => `${a.date}T${a.time}`.localeCompare(`${b.date}T${b.time}`))
                       .map((b) => (
                         <div className="adminBooking" key={b.id}>
                           <div>
@@ -1867,6 +2037,7 @@ function App() {
                             <small>
                               {fmt(b.date)} {b.time} · {b.payment}
                             </small>
+                            <small>Stylist: {stylists.find((item) => item.id === b.stylist)?.name || "Unassigned"}</small>
                             {(() => {
                               const consent = consents.find((item) => item.id === b.consentId);
                               return consent ? (
@@ -1887,29 +2058,27 @@ function App() {
                             </span>
                           </div>
                           <div className="adminActions">
-                            {b.status === "Pending" && (
-                              <button
-                                onClick={() => updateBooking(b.id, "Confirmed")}
-                              >
-                                Confirm
-                              </button>
-                            )}
-                            {b.status === "Confirmed" && (
-                              <button
-                                onClick={() => updateBooking(b.id, "Completed")}
-                              >
-                                Complete visit
-                              </button>
-                            )}
-                            {!["Cancelled", "Completed"].includes(b.status) && (
-                              <button
-                                className="danger"
-                                onClick={() => updateBooking(b.id, "Cancelled")}
-                              >
-                                Cancel
-                              </button>
+                            <label className="adminStatusControl">
+                              Status
+                              <select value={b.status} onChange={(event) => updateBooking(b.id, event.target.value)}>
+                                {["Pending", "Confirmed", "In Progress", "Completed", "Cancelled"].map((status) => <option key={status}>{status}</option>)}
+                              </select>
+                            </label>
+                            {! ["Cancelled", "Completed"].includes(b.status) && (
+                              <button onClick={() => startReschedule(b)}>Reschedule / assign</button>
                             )}
                           </div>
+                          {editingBooking === b.id && (
+                            <div className="rescheduleForm">
+                              <label>Date<input type="date" value={editDate} onChange={(event) => setEditDate(event.target.value)} /></label>
+                              <label>Time<select value={editTime} onChange={(event) => setEditTime(event.target.value)}>{slots.map((slot) => <option key={slot}>{slot}</option>)}</select></label>
+                              <label>Stylist<select value={editStylist} onChange={(event) => setEditStylist(event.target.value)}>{stylists.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}</select></label>
+                              <div className="rescheduleActions">
+                                <button onClick={() => saveReschedule(b)}>Save changes</button>
+                                <button className="cancelEdit" onClick={() => setEditingBooking(null)}>Discard</button>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       ))
                   ) : (

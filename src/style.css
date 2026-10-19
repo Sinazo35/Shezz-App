@@ -1557,6 +1557,7 @@ footer {
   padding: 16px 0;
   border-bottom: 1px solid #e8edf7;
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: 12px;
 }
@@ -1601,6 +1602,291 @@ footer {
 .adminActions button.danger {
   background: #ffeaea;
   color: #b83e3e;
+}
+.adminCalendarPanel {
+  margin: 0 0 24px;
+  padding: 22px;
+  border: 1px solid #eadfd9;
+  border-radius: 8px;
+  background: #fffdfa;
+}
+.adminCalendarToolbar,
+.adminCalendarNavigation,
+.adminCalendarViews,
+.availabilityHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.adminCalendarToolbar {
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.adminCalendarViews {
+  justify-content: flex-start;
+  gap: 3px;
+  padding: 3px;
+  border-radius: 6px;
+  background: #f4efeb;
+}
+.adminCalendarViews button,
+.adminCalendarNavigation button {
+  min-height: 34px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #53635a;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+}
+.adminCalendarViews button {
+  min-width: 58px;
+  padding: 7px 10px;
+}
+.adminCalendarViews button.selected,
+.adminCalendarNavigation button:hover {
+  background: #38665b;
+  color: white;
+}
+.adminCalendarNavigation {
+  justify-content: flex-end;
+}
+.adminCalendarNavigation button {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  border: 1px solid #e7ddd7;
+  background: white;
+}
+.adminCalendarNavigation strong {
+  min-width: 175px;
+  color: #29473f;
+  text-align: center;
+  font-size: 13px;
+}
+.adminCalendarNavigation button.todayButton {
+  width: auto;
+  padding: 0 11px;
+  color: #a75c61;
+}
+.adminWeekdays,
+.adminCalendarDays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+.adminWeekdays {
+  color: #7e8981;
+  font-size: 10px;
+  font-weight: 800;
+  text-align: center;
+  text-transform: uppercase;
+}
+.adminWeekdays span {
+  padding: 9px 4px;
+}
+.adminCalendarDays {
+  border-top: 1px solid #e9e2dc;
+  border-left: 1px solid #e9e2dc;
+}
+.adminCalendarDays.day {
+  grid-template-columns: minmax(0, 1fr);
+}
+.adminCalendarDay {
+  min-width: 0;
+  min-height: 146px;
+  padding: 8px;
+  border-right: 1px solid #e9e2dc;
+  border-bottom: 1px solid #e9e2dc;
+  background: #fffdfa;
+}
+.adminCalendarDays.week .adminCalendarDay {
+  min-height: 220px;
+}
+.adminCalendarDays.day .adminCalendarDay {
+  min-height: 170px;
+}
+.adminCalendarDay.focused {
+  background: #f8f2ed;
+}
+.adminCalendarDay.outsideMonth {
+  background: #faf8f6;
+  color: #abb1aa;
+}
+.calendarDateButton {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  min-height: 27px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #52635a;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 700;
+}
+.calendarDateButton strong {
+  display: grid;
+  place-items: center;
+  width: 25px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  color: #29473f;
+  font-size: 12px;
+}
+.focused .calendarDateButton strong {
+  background: #38665b;
+  color: white;
+}
+.adminCalendarEvents {
+  display: grid;
+  gap: 5px;
+  margin-top: 7px;
+}
+.adminCalendarEvent {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 2px 6px;
+  padding: 5px 6px;
+  border-left: 2px solid #38665b;
+  border-radius: 2px;
+  background: #edf4ef;
+  color: #29473f;
+  font-size: 9px;
+  line-height: 1.35;
+}
+.adminCalendarEvent time {
+  font-weight: 800;
+}
+.adminCalendarEvent span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.adminCalendarEvent small {
+  grid-column: 2;
+  color: #64766c;
+  font-size: 8px;
+}
+.adminCalendarEvent.pending { border-color: #cf8875; background: #fbefeb; }
+.adminCalendarEvent.confirmed { border-color: #38665b; }
+.adminCalendarEvent.in-progress { border-color: #c38a38; background: #fbf4e6; }
+.adminCalendarEvent.completed { border-color: #72917e; background: #eef3ef; }
+.adminCalendarEvent.cancelled { border-color: #b8aaa6; background: #f1eeec; opacity: .65; }
+.calendarEmpty {
+  padding: 5px 2px;
+  color: #9a9f98;
+  font-size: 9px;
+}
+.availabilityHeader {
+  align-items: end;
+  margin: 23px 0 12px;
+}
+.availabilityHeader h3 {
+  margin: 0 0 5px;
+  color: #29473f;
+  font-size: 16px;
+}
+.availabilityHeader p {
+  margin: 0;
+  color: #78837b;
+  font-size: 11px;
+}
+.availabilityHeader label,
+.adminStatusControl {
+  display: grid;
+  gap: 5px;
+  color: #6f7c73;
+  font-size: 10px;
+  font-weight: 700;
+}
+.availabilityHeader select,
+.adminStatusControl select,
+.rescheduleForm input,
+.rescheduleForm select {
+  min-height: 36px;
+  padding: 7px 9px;
+  border: 1px solid #ded8d2;
+  border-radius: 4px;
+  background: white;
+  color: #34483e;
+  font: inherit;
+  font-size: 11px;
+}
+.availabilityGrid {
+  display: grid;
+  grid-template-columns: 62px repeat(var(--stylist-count), minmax(120px, 1fr));
+  min-width: 420px;
+  border-top: 1px solid #e9e2dc;
+  border-left: 1px solid #e9e2dc;
+}
+.availabilityCorner,
+.availabilityStylist,
+.availabilityTime,
+.availabilityCell {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding: 9px 8px;
+  border-right: 1px solid #e9e2dc;
+  border-bottom: 1px solid #e9e2dc;
+  font-size: 10px;
+}
+.availabilityCorner,
+.availabilityStylist {
+  color: #53635a;
+  font-size: 9px;
+  line-height: 1.35;
+}
+.availabilityTime {
+  color: #78837b;
+  font-weight: 700;
+}
+.availabilityCell.available { background: #f0f5f0; color: #38665b; }
+.availabilityCell.booked { background: #fbefeb; color: #a75c61; }
+.availabilityCell.closed { background: #f5f3f1; color: #969b95; }
+.availabilityCell.past { background: #f7f5f2; color: #a19b94; }
+.rescheduleForm {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  flex: 1 0 100%;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 5px;
+  background: #f7f2ef;
+}
+.rescheduleForm label {
+  display: grid;
+  gap: 5px;
+  color: #6f7c73;
+  font-size: 10px;
+  font-weight: 700;
+}
+.rescheduleActions {
+  display: flex;
+  grid-column: 1 / -1;
+  gap: 7px;
+}
+.rescheduleActions button {
+  padding: 8px 11px;
+  border: 0;
+  border-radius: 4px;
+  background: #38665b;
+  color: white;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 700;
+}
+.rescheduleActions button.cancelEdit {
+  background: #e8e2dd;
+  color: #59655d;
 }
 .muted {
   color: #8994a8;
@@ -1797,6 +2083,39 @@ footer {
   }
   .adminStats > div {
     padding: 12px;
+  }
+  .adminCalendarPanel {
+    overflow-x: auto;
+    padding: 14px;
+  }
+  .adminCalendarToolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .adminCalendarNavigation {
+    width: 100%;
+    justify-content: space-between;
+    gap: 6px;
+  }
+  .adminCalendarNavigation strong {
+    min-width: 0;
+    flex: 1;
+    font-size: 11px;
+  }
+  .adminCalendarDays.week,
+  .adminCalendarDays.month,
+  .adminWeekdays {
+    min-width: 680px;
+  }
+  .availabilityHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .availabilityGrid {
+    grid-template-columns: 50px repeat(var(--stylist-count), minmax(110px, 1fr));
+  }
+  .rescheduleForm {
+    grid-template-columns: 1fr;
   }
   .rewardPanel {
     padding: 20px;
